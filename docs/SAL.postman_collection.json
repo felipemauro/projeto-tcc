@@ -1,0 +1,810 @@
+{
+  "info": {
+    "name": "SAL – Agendamento de Laboratórios (UEMG)",
+    "description": "Coleção de testes da API REST. Execute primeiro um dos logins: o token é salvo automaticamente.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3333/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "dataReserva",
+      "value": "2026-12-02"
+    },
+    {
+      "key": "idReserva",
+      "value": "1"
+    }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        {
+          "name": "Login – Coordenador",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) pm.collectionVariables.set('token', r.token);",
+                  "pm.test('login realizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"coordenacao@uemg.br\",\n  \"senha\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Docente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) pm.collectionVariables.set('token', r.token);",
+                  "pm.test('login realizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana.ribeiro@uemg.br\",\n  \"senha\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login – Administrativo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) pm.collectionVariables.set('token', r.token);",
+                  "pm.test('login realizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@uemg.br\",\n  \"senha\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Usuário logado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservas",
+      "item": [
+        {
+          "name": "Listar reservas (período)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas?inicio=2026-11-01&fim=2026-11-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ],
+              "query": [
+                {
+                  "key": "inicio",
+                  "value": "2026-11-01"
+                },
+                {
+                  "key": "fim",
+                  "value": "2026-11-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Minhas reservas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas?minhas=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ],
+              "query": [
+                {
+                  "key": "minhas",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pendentes por prioridade (com conflitos)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas?status=PENDENTE&ordem=prioridade&conflitos=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "PENDENTE"
+                },
+                {
+                  "key": "ordem",
+                  "value": "prioridade"
+                },
+                {
+                  "key": "conflitos",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Verificar disponibilidade (sem gravar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/verificar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "verificar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_laboratorio\": 1,\n  \"id_disciplina\": 1,\n  \"data\": \"{{dataReserva}}\",\n  \"hora_inicio\": \"07:30\",\n  \"hora_fim\": \"09:10\",\n  \"qtd_alunos\": 30,\n  \"finalidade\": \"Aula prática\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Solicitar reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_laboratorio\": 1,\n  \"id_disciplina\": 1,\n  \"data\": \"{{dataReserva}}\",\n  \"hora_inicio\": \"07:30\",\n  \"hora_fim\": \"09:10\",\n  \"qtd_alunos\": 30,\n  \"finalidade\": \"Aula prática\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Detalhar reserva",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alterar reserva",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"hora_inicio\": \"09:20\",\n  \"hora_fim\": \"11:00\",\n  \"versao\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Aprovar reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}/aprovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}",
+                "aprovar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"versao\": 1\n}"
+            }
+          }
+        },
+        {
+          "name": "Aprovar com remanejamento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}/aprovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}",
+                "aprovar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"versao\": 1,\n  \"forcar\": true,\n  \"motivo\": \"Aula prática obrigatória\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Rejeitar reserva",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}/rejeitar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}",
+                "rejeitar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"versao\": 1,\n  \"motivo\": \"Laboratório em manutenção\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Cancelar reserva",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/{{idReserva}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "{{idReserva}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Laboratórios e disciplinas",
+      "item": [
+        {
+          "name": "Listar laboratórios",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratorios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratorios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Disponibilidade do laboratório",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratorios/1/disponibilidade?data={{dataReserva}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratorios",
+                "1",
+                "disponibilidade"
+              ],
+              "query": [
+                {
+                  "key": "data",
+                  "value": "{{dataReserva}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cadastrar laboratório",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/laboratorios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "laboratorios"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Laboratório de Informática 5\",\n  \"capacidade\": 30,\n  \"localizacao\": \"Bloco C\",\n  \"descricao\": \"30 computadores\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Listar disciplinas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/disciplinas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disciplinas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cadastrar disciplina",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/disciplinas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "disciplinas"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Sistemas Operacionais\",\n  \"curso\": \"Engenharia da Computação\",\n  \"periodo\": 5,\n  \"tipo\": \"PRATICA\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Gestão",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard?inicio=2026-11-01&fim=2026-11-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ],
+              "query": [
+                {
+                  "key": "inicio",
+                  "value": "2026-11-01"
+                },
+                {
+                  "key": "fim",
+                  "value": "2026-11-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Relatório de ocupação (JSON)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/relatorios?tipo=ocupacao&inicio=2026-11-01&fim=2026-11-30",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relatorios"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "ocupacao"
+                },
+                {
+                  "key": "inicio",
+                  "value": "2026-11-01"
+                },
+                {
+                  "key": "fim",
+                  "value": "2026-11-30"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Relatório de reservas (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/relatorios?tipo=reservas&inicio=2026-11-01&fim=2026-11-30&formato=csv",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relatorios"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "reservas"
+                },
+                {
+                  "key": "inicio",
+                  "value": "2026-11-01"
+                },
+                {
+                  "key": "fim",
+                  "value": "2026-11-30"
+                },
+                {
+                  "key": "formato",
+                  "value": "csv"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Histórico (auditoria)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/historico",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "historico"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parâmetros da priorização",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/parametros",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "parametros"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/usuarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "usuarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Notificações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/notificacoes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notificacoes"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
