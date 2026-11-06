@@ -1,0 +1,53 @@
+@startuml
+' Diagrama de Sequência – Solicitar Reserva (validação de conflitos)
+' Seção 3.2.3 do TCC: "Diagrama de Sequência necessário para detalhar
+' operações críticas, como a validação de conflitos de horários".
+title Solicitar Reserva – validação de conflitos e priorização
+
+actor Docente
+participant "Frontend\n(React)" as FE
+participant "API REST\n(Node.js/Express)" as API
+participant "ReservaService" as RS
+participant "RegraDePriorizacao" as RP
+database "PostgreSQL" as DB
+
+Docente -> FE : preenche laboratório, data,\nhorário e nº de alunos
+FE -> API : POST /api/reservas/verificar
+API -> RS : simular(dados)
+RS -> RP : validarRestricoesRigidas()\ndefinirPrioridade()\nverificarConflitos()
+RS -> RP : sugerirHorarios() [se houver conflito]
+API --> FE : decisão, prioridade, conflitos, sugestões
+FE --> Docente : exibe análise em tempo real
+
+Docente -> FE : confirma solicitação
+FE -> API : POST /api/reservas (JWT)
+API -> API : autenticar() / validar dados
+API -> RS : solicitar(dados, usuário)
+RS -> DB : BEGIN
+RS -> DB : SELECT ... FROM laboratorio\nWHERE id = ? FOR UPDATE
+note right of DB
+  Bloqueio pessimista: requisições
+  simultâneas para o mesmo laboratório
+  aguardam aqui (serialização).
+end note
+RS -> DB : SELECT reservas do dia (APROVADA/PENDENTE)
+RS -> RP : decidirSolicitacao(prioridade, conflitos)
+
+alt BLOQUEAR (aprovada de prioridade >= )
+  RS -> DB : INSERT historico (BLOQUEADA_CONFLITO)
+  RS -> DB : COMMIT
+  API --> FE : 409 + sugestões de horários
+else APROVAR / PENDENTE / ANALISE
+  RS -> DB : INSERT reserva (status, prioridade)
+  RS -> DB : INSERT historico
+  RS -> DB : COMMIT
+  note right of DB
+    Restrição EXCLUDE (gist) impede
+    sobreposição de reservas APROVADAS
+    mesmo em caso de falha da aplicação.
+  end note
+  API -> FE : SSE "reserva" para todos os clientes
+  API --> FE : 201 Created
+end
+FE --> Docente : mensagem de confirmação
+@enduml

@@ -1,0 +1,17 @@
+{
+  "name": "sistema-agendamento-laboratorios",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário – UEMG Divinópolis",
+  "author": "Felipe Mauro da Silva",
+  "license": "MIT",
+  "scripts": {
+    "instalar": "npm --prefix backend install && npm --prefix frontend install",
+    "db:reset": "npm --prefix backend run db:reset",
+    "dev:api": "npm --prefix backend run dev",
+    "dev:web": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend start",
+    "test": "npm --prefix backend test"
+  }
+}
