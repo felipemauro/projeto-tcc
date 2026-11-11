@@ -74,7 +74,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"coordenacao@uemg.br\",\n  \"senha\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"willyan.coord@coordenacao.uemg.br\",\n  \"senha\": \"123456@wi\"\n}"
             }
           }
         },
@@ -116,7 +116,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"ana.ribeiro@uemg.br\",\n  \"senha\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"marcos.doc@docente.uemg.br\",\n  \"senha\": \"123456@ma\"\n}"
             }
           }
         },
@@ -158,7 +158,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"admin@uemg.br\",\n  \"senha\": \"123456\"\n}"
+              "raw": "{\n  \"email\": \"aguinaldo.admin@funcionario.uemg.br\",\n  \"senha\": \"123456@ag\"\n}"
             }
           }
         },

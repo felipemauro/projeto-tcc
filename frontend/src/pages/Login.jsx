@@ -3,13 +3,8 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexto/AuthContext';
 import { Alerta } from '../components/ui';
 import Icone from '../components/Icone';
-
-const DEMO = [
-  ['Administrativo', 'admin@uemg.br'],
-  ['Coordenador', 'coordenacao@uemg.br'],
-  ['Docente', 'ana.ribeiro@uemg.br'],
-  ['Discente', 'lucas.almeida@discente.uemg.br'],
-];
+import logoUemg from '../assets/logo-uemg.png';
+import logoSali from '../assets/logo-sali.png';
 
 export default function Login() {
   const { usuario, entrar } = useAuth();
@@ -37,13 +32,12 @@ export default function Login() {
     <div className="login">
       <div className="login-lado">
         <div className="login-marca">
-          <span className="marca-sigla grande">UEMG</span>
-          <div>
-            <strong>Universidade do Estado de Minas Gerais</strong>
-            <span>Unidade Divinópolis</span>
-          </div>
+          <img src={logoUemg} alt="UEMG – Universidade do Estado de Minas Gerais" className="login-logo" />
+          <span>Unidade Divinópolis</span>
         </div>
-        <h1>Agendamento de Laboratórios Acadêmicos</h1>
+        <h1 className="login-titulo">
+          <img src={logoSali} alt="SALI – Sistema de Agendamentos de Laboratórios Acadêmicos de Informática" className="login-sistema-logo" />
+        </h1>
         <p>Consulte a disponibilidade, solicite reservas e acompanhe a ocupação dos laboratórios de informática em tempo real.</p>
         <ul className="login-recursos">
           <li><Icone nome="check" /> Detecção automática de conflitos de horário</li>
@@ -68,16 +62,6 @@ export default function Login() {
           <button className="btn btn-primario btn-bloco" disabled={enviando}>
             {enviando ? 'Entrando…' : 'Entrar'}
           </button>
-          <div className="login-demo">
-            <span>Acesso de demonstração (senha 123456):</span>
-            <div>
-              {DEMO.map(([rotulo, e]) => (
-                <button type="button" key={e} className="chip" onClick={() => { setEmail(e); setSenha('123456'); }}>
-                  {rotulo}
-                </button>
-              ))}
-            </div>
-          </div>
         </form>
       </div>
     </div>

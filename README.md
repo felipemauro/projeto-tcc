@@ -101,6 +101,7 @@ cd backend
 cp .env.example .env        # ajuste DATABASE_URL e JWT_SECRET se necessário
 npm install
 npm run db:reset            # cria as tabelas e insere dados de demonstração
+npm run db:disciplinas      # (opcional) importa as disciplinas do PPC sem apagar os dados
 npm run dev                 # API em http://localhost:3333/api
 ```
 
@@ -117,14 +118,18 @@ cd frontend && npm run build
 cd ../backend && npm start   # serve a API e o frontend compilado em http://localhost:3333
 ```
 
-### Usuários de demonstração (senha `123456`)
+### Usuários cadastrados
 
-| Perfil | E-mail |
-|---|---|
-| Funcionário Administrativo | admin@uemg.br |
-| Coordenador | coordenacao@uemg.br |
-| Docente | ana.ribeiro@uemg.br, carlos.mendes@uemg.br, juliana.costa@uemg.br |
-| Discente | lucas.almeida@discente.uemg.br |
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Funcionário Administrativo | aguinaldo.admin@funcionario.uemg.br | 123456@ag |
+| Coordenador | willyan.coord@coordenacao.uemg.br | 123456@wi |
+| Docente | marcos.doc@docente.uemg.br | 123456@ma |
+| Discente | felipe.1657023@discente.uemg.br | 123456@fe |
+
+> As disciplinas cadastradas seguem a estrutura curricular do PPC de Engenharia de Computação (`backend/db/disciplinas-ppc.js`).
+>
+> Os usuários e as senhas são definidos em `backend/db/seed.js`. Altere as senhas antes de usar o sistema em produção.
 
 > Os dados de demonstração (`backend/db/seed.js`) são fictícios e servem apenas para apresentação; não representam a ocupação real dos laboratórios.
 

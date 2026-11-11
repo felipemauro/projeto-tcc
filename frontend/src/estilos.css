@@ -66,7 +66,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: #fff;
   box-shadow: 0 2px 6px rgba(0,0,0,.18);
 }
-.marca { display: flex; align-items: center; gap: 12px; }
+.marca { display: flex; align-items: center; gap: 14px; }
+.marca-logo { display: block; height: 32px; width: auto; }
+.marca-divisor { width: 1px; height: 30px; background: rgba(255,255,255,.35); }
 .marca-sigla {
   font-weight: 800; letter-spacing: .06em; font-size: 15px;
   background: #fff; color: var(--azul-800);
@@ -74,7 +76,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .marca-sigla.grande { font-size: 22px; padding: 8px 14px; }
 .marca-texto { display: flex; flex-direction: column; line-height: 1.15; }
-.marca-texto strong { font-size: 15px; }
+.marca-texto strong { font-size: 18px; font-weight: 800; letter-spacing: .04em; }
 .marca-texto small { opacity: .75; font-size: 12px; }
 .topo-direita { margin-left: auto; display: flex; align-items: center; gap: 6px; }
 .btn-topo {
@@ -450,9 +452,11 @@ input:focus, select:focus, textarea:focus { border-color: var(--azul-500); box-s
   background: linear-gradient(150deg, var(--azul-900) 0%, var(--azul-700) 100%);
   color: #fff; padding: 56px 64px; display: flex; flex-direction: column; justify-content: center; gap: 20px;
 }
-.login-marca { display: flex; align-items: center; gap: 14px; }
-.login-marca div { display: flex; flex-direction: column; }
-.login-marca span { opacity: .8; }
+.login-marca { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.login-logo { display: block; height: 44px; width: auto; }
+.login-titulo { margin: 24px 0 0; line-height: 0; }
+.login-sistema-logo { display: block; width: 100%; max-width: 500px; height: auto; margin-left: -3px; }
+.login-marca span { opacity: .8; font-size: 14px; padding-left: 2px; }
 .login-lado h1 { font-size: 34px; line-height: 1.15; max-width: 520px; margin-top: 24px; }
 .login-lado p { font-size: 16px; opacity: .85; max-width: 500px; margin: 0; }
 .login-recursos { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-direction: column; gap: 10px; }
@@ -462,8 +466,6 @@ input:focus, select:focus, textarea:focus { border-color: var(--azul-500); box-s
 .login-form { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 16px; }
 .login-form h2 { font-size: 22px; color: var(--azul-900); }
 .login-form .subtitulo { margin-top: -10px; }
-.login-demo { border-top: 1px solid var(--borda); padding-top: 14px; font-size: 12.5px; color: var(--texto-3); display: flex; flex-direction: column; gap: 8px; }
-.login-demo div { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* ----------------------------------------------------------- responsivo */
 @media (max-width: 1100px) {
@@ -477,12 +479,19 @@ input:focus, select:focus, textarea:focus { border-color: var(--azul-500); box-s
   .menu-aberto .lateral { transform: none; box-shadow: var(--sombra-alta); }
   .menu-aberto .lateral-fundo { display: block; position: fixed; inset: var(--topo-altura) 0 0 0; background: rgba(0,0,0,.35); z-index: 15; }
   .usuario-dados, .tempo-real, .marca-texto small { display: none; }
+  .marca-logo { height: 24px; }
+  .marca { gap: 10px; }
   .conteudo { padding: 16px 12px 40px; }
   .form-grade { grid-template-columns: 1fr; }
   .navegacao-data { margin-left: 0; }
   .login { grid-template-columns: 1fr; }
   .login-lado { padding: 32px 24px; }
   .login-lado h1 { font-size: 26px; margin-top: 8px; }
+  .login-logo { height: 36px; }
+  .login-titulo { margin-top: 8px; }
   .login-recursos { display: none; }
 }
 .pagina form > .acoes-form { margin-top: 16px; }
+@media (max-width: 480px) {
+  .marca-divisor, .marca-texto { display: none; }
+}

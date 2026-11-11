@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import Icone from './Icone';
+import logoUemg from '../assets/logo-uemg.png';
 import { useAuth } from '../contexto/AuthContext';
 import { useTempoReal } from '../contexto/TempoReal';
 import { api } from '../api';
@@ -99,9 +100,10 @@ export default function Layout() {
           <Icone nome="menu" />
         </button>
         <div className="marca">
-          <span className="marca-sigla">UEMG</span>
+          <img src={logoUemg} alt="UEMG – Universidade do Estado de Minas Gerais" className="marca-logo" />
+          <span className="marca-divisor" aria-hidden="true" />
           <span className="marca-texto">
-            <strong>Agendamento de Laboratórios</strong>
+            <strong>SALI</strong>
             <small>Unidade Divinópolis</small>
           </span>
         </div>
@@ -139,7 +141,7 @@ export default function Layout() {
           ))}
         </nav>
         <div className="lateral-rodape">
-          SAL v1.0 · TCC Eng. Computação
+          SALI v1.0 · TCC Eng. Computação
         </div>
       </aside>
       <div className="lateral-fundo" onClick={() => setMenuAberto(false)} />
