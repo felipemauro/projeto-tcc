@@ -240,8 +240,29 @@ function sugerirHorarios({ solicitacao, laboratorios, ocupacoes, parametros, hoj
   return candidatos.slice(0, p.sugestoes.maximo);
 }
 
+// ---------------------------------------------------------------------
+// 4. Reservas recorrentes
+// ---------------------------------------------------------------------
+
+/**
+ * Gera as datas de uma série semanal: todas as datas entre `inicio` e `fim`
+ * (inclusive) que caem nos dias da semana escolhidos e em que os
+ * laboratórios funcionam. Dias da semana: 0 = domingo ... 6 = sábado.
+ */
+function gerarDatasRecorrentes(inicio, fim, diasSemana, parametros) {
+  const funcionamento = (parametros || PARAMETROS_PADRAO).funcionamento.diasSemana;
+  const escolhidos = new Set(diasSemana.map(Number));
+  const datas = [];
+  for (let d = inicio; d <= fim; d = somarDias(d, 1)) {
+    const dia = diaSemana(d);
+    if (escolhidos.has(dia) && funcionamento.includes(dia)) datas.push(d);
+  }
+  return datas;
+}
+
 module.exports = {
   PARAMETROS_PADRAO,
+  gerarDatasRecorrentes,
   haSobreposicao,
   verificarConflitos,
   validarRestricoesRigidas,

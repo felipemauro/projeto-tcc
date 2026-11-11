@@ -2,6 +2,7 @@ const { Router } = require('express');
 const { z } = require('zod');
 const { autorizar, GESTORES } = require('../middlewares/auth');
 const servico = require('../services/reservaService');
+const series = require('../services/serieService');
 
 const router = Router();
 
@@ -40,6 +41,33 @@ router.get('/', async (req, res) => {
 router.post('/verificar', async (req, res) => {
   const dados = esquemaReserva.extend({ id_reserva: id.optional() }).parse(req.body);
   res.json(await servico.simular(dados, req.usuario));
+});
+
+// ------------------------------------------------- reservas recorrentes
+const esquemaSerie = esquemaReserva.extend({
+  data_fim: data,
+  dias_semana: z.array(z.coerce.number().int().min(0).max(6)).min(1, 'Escolha ao menos um dia da semana.').max(7),
+});
+
+// POST /api/reservas/serie/verificar – prévia de todas as datas da repetição (não grava)
+router.post('/serie/verificar', async (req, res) => {
+  res.json(await series.simularSerie(esquemaSerie.parse(req.body), req.usuario));
+});
+
+// POST /api/reservas/serie – cria a série com todas as datas disponíveis
+router.post('/serie', async (req, res) => {
+  res.status(201).json(await series.criarSerie(esquemaSerie.parse(req.body), req.usuario));
+});
+
+// POST /api/reservas/serie/:id/aprovar – aprova as datas pendentes sem conflito
+router.post('/serie/:id/aprovar', autorizar(...GESTORES), async (req, res) => {
+  res.json(await series.aprovarSerie(id.parse(req.params.id), req.usuario));
+});
+
+// DELETE /api/reservas/serie/:id – cancela as próximas datas da série
+router.delete('/serie/:id', async (req, res) => {
+  const motivo = typeof req.query.motivo === 'string' ? req.query.motivo.slice(0, 500) : undefined;
+  res.json(await series.cancelarSerie(id.parse(req.params.id), { motivo }, req.usuario));
 });
 
 router.get('/:id', async (req, res) => {

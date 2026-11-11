@@ -2,7 +2,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 import { Alerta, Campo, Modal, PrioridadeBadge, StatusBadge, Sugestoes, useAviso } from './ui';
-import { formatarDataLonga, formatarDataHora, PERFIS, TIPOS_DISCIPLINA, ehGestor } from '../util';
+import { DIAS, formatarData, formatarDataLonga, formatarDataHora, PERFIS, TIPOS_DISCIPLINA, ehGestor } from '../util';
+
+/** Texto da repetição de uma série, ex.: 'terças e quintas, de 01/12/2026 a 17/12/2026'. */
+export function descreverSerie(r) {
+  const dias = (r.serie_dias || []).map((d) => `${DIAS[d].toLowerCase()}s`);
+  const lista = dias.length > 1 ? `${dias.slice(0, -1).join(', ')} e ${dias.at(-1)}` : dias[0];
+  return `Semanal (${lista}), de ${formatarData(r.serie_inicio)} a ${formatarData(r.serie_fim)} · ${r.serie_total} data(s)`;
+}
 import { useAuth } from '../contexto/AuthContext';
 
 function mensagemErro(e) {
@@ -24,6 +31,7 @@ export function DetalhesReserva({ reserva, aoFechar, aoAgir }) {
   const podeCancelar = ['PENDENTE', 'APROVADA'].includes(r.status) && (gestor || r.id_usuario === usuario.id);
   const podeAlterar = (gestor && ['PENDENTE', 'APROVADA'].includes(r.status)) || (r.id_usuario === usuario.id && r.status === 'PENDENTE');
   const d = r.detalhe_prioridade;
+  const podeCancelarSerie = r.id_serie && (gestor || r.id_usuario === usuario.id || r.id_criador === usuario.id);
 
   return (
     <Modal
@@ -37,7 +45,9 @@ export function DetalhesReserva({ reserva, aoFechar, aoAgir }) {
             <button className="btn btn-perigo-contorno" onClick={() => aoAgir('rejeitar', r)}>Rejeitar</button>
           </>}
           {podeAlterar && <button className="btn btn-contorno" onClick={() => aoAgir('alterar', r)}>Alterar</button>}
-          {podeCancelar && <button className="btn btn-perigo-contorno" onClick={() => aoAgir('cancelar', r)}>Cancelar reserva</button>}
+          {gestor && r.id_serie && r.status === 'PENDENTE' && <button className="btn btn-sucesso" onClick={() => aoAgir('aprovarSerie', r)}>Aprovar série</button>}
+          {podeCancelar && <button className="btn btn-perigo-contorno" onClick={() => aoAgir('cancelar', r)}>{r.id_serie ? 'Cancelar esta data' : 'Cancelar reserva'}</button>}
+          {podeCancelarSerie && <button className="btn btn-perigo-contorno" onClick={() => aoAgir('cancelarSerie', r)}>Cancelar série</button>}
         </>
       }
     >
@@ -46,6 +56,7 @@ export function DetalhesReserva({ reserva, aoFechar, aoAgir }) {
         <dt>Laboratório</dt><dd>{r.laboratorio_nome}</dd>
         <dt>Data</dt><dd>{formatarDataLonga(r.data)}</dd>
         <dt>Horário</dt><dd>{r.hora_inicio} às {r.hora_fim}</dd>
+        {r.id_serie && <><dt>Repetição</dt><dd>{descreverSerie(r)}</dd></>}
         <dt>Disciplina</dt><dd>{r.disciplina_nome ? `${r.disciplina_nome} (${TIPOS_DISCIPLINA[r.disciplina_tipo]})` : '—'}</dd>
         <dt>Solicitante</dt><dd>{r.usuario_nome} · {PERFIS[r.usuario_perfil]}</dd>
         {r.id_criador && r.id_criador !== r.id_usuario && <><dt>Registrada por</dt><dd>{r.criador_nome}</dd></>}
@@ -248,6 +259,57 @@ export function AlterarReserva({ reserva, aoFechar, aoConcluir }) {
   );
 }
 
+export function AprovarSerie({ reserva, aoFechar, aoConcluir }) {
+  const avisar = useAviso();
+  const [erro, setErro] = useState('');
+  const enviar = async () => {
+    try {
+      const r = await api.post(`/reservas/serie/${reserva.id_serie}/aprovar`);
+      avisar(`${r.aprovadas} data(s) aprovada(s).${r.mantidasPendentes.length ? ` ${r.mantidasPendentes.length} continuam pendentes por conflito.` : ''}`);
+      aoConcluir();
+    } catch (e) { setErro(e.message); }
+  };
+  return (
+    <Modal titulo="Aprovar série semanal" aberto aoFechar={aoFechar}
+      rodape={<>
+        <button className="btn btn-contorno" onClick={aoFechar}>Voltar</button>
+        <button className="btn btn-sucesso" onClick={enviar}>Aprovar datas pendentes</button>
+      </>}>
+      {erro && <Alerta tipo="erro">{erro}</Alerta>}
+      <p><strong>{reserva.usuario_nome}</strong> · {reserva.laboratorio_nome} · {reserva.hora_inicio}–{reserva.hora_fim}</p>
+      <p className="texto-apoio">{descreverSerie(reserva)}</p>
+      <Alerta tipo="info">Todas as datas pendentes desta série serão aprovadas. Datas que conflitam com reservas já aprovadas continuam pendentes para análise individual.</Alerta>
+    </Modal>
+  );
+}
+
+export function CancelarSerie({ reserva, aoFechar, aoConcluir }) {
+  const avisar = useAviso();
+  const [motivo, setMotivo] = useState('');
+  const [erro, setErro] = useState('');
+  const enviar = async () => {
+    try {
+      const r = await api.delete(`/reservas/serie/${reserva.id_serie}${motivo ? `?motivo=${encodeURIComponent(motivo)}` : ''}`);
+      avisar(`${r.canceladas} data(s) da série cancelada(s).`);
+      aoConcluir();
+    } catch (e) { setErro(e.message); }
+  };
+  return (
+    <Modal titulo="Cancelar série semanal" aberto aoFechar={aoFechar}
+      rodape={<>
+        <button className="btn btn-contorno" onClick={aoFechar}>Voltar</button>
+        <button className="btn btn-perigo" onClick={enviar}>Cancelar próximas datas</button>
+      </>}>
+      {erro && <Alerta tipo="erro">{erro}</Alerta>}
+      <p>Serão canceladas <strong>todas as datas a partir de hoje</strong> da série no {reserva.laboratorio_nome}, {reserva.hora_inicio}–{reserva.hora_fim}. As datas que já passaram ficam no histórico.</p>
+      <p className="texto-apoio">{descreverSerie(reserva)}</p>
+      <Campo rotulo="Motivo (opcional)">
+        <input value={motivo} onChange={(e) => setMotivo(e.target.value)} maxLength={500} />
+      </Campo>
+    </Modal>
+  );
+}
+
 /** Orquestra os modais a partir de uma ação ('detalhes' | 'aprovar' | ...). */
 export function useAcoesReserva(aoAtualizar) {
   const [acao, setAcao] = useState(null);
@@ -261,6 +323,8 @@ export function useAcoesReserva(aoAtualizar) {
       {acao.tipo === 'rejeitar' && <RejeitarReserva reserva={acao.reserva} aoFechar={fechar} aoConcluir={concluir} />}
       {acao.tipo === 'alterar' && <AlterarReserva reserva={acao.reserva} aoFechar={fechar} aoConcluir={concluir} />}
       {acao.tipo === 'cancelar' && <CancelarReserva reserva={acao.reserva} aoFechar={fechar} aoConcluir={concluir} />}
+      {acao.tipo === 'aprovarSerie' && <AprovarSerie reserva={acao.reserva} aoFechar={fechar} aoConcluir={concluir} />}
+      {acao.tipo === 'cancelarSerie' && <CancelarSerie reserva={acao.reserva} aoFechar={fechar} aoConcluir={concluir} />}
     </>
   );
   return { abrir, modais };

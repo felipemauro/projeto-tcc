@@ -62,7 +62,8 @@ frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  Pos
    - conflito com aprovada de prioridade **menor** → encaminhada para **análise** (possível remanejamento);
    - sem conflitos → aprovação automática (perfis configurados) ou pendente de aprovação.
 4. **Sugestão de horários alternativos** – mesmo laboratório em horários próximos, outros laboratórios com capacidade suficiente no mesmo horário e o mesmo horário em dias próximos, ordenados por proximidade.
-5. **Histórico de utilização** – todas as operações (inclusive tentativas bloqueadas) ficam registradas para auditoria e indicadores.
+5. **Reservas recorrentes** – o solicitante informa o horário, o período e os dias da semana em que leciona; cada data gerada passa pelas mesmas regras acima. Datas com conflito são mostradas antes da confirmação e não são criadas; as demais formam uma série, que pode ser aprovada ou cancelada de uma só vez.
+6. **Histórico de utilização** – todas as operações (inclusive tentativas bloqueadas) ficam registradas para auditoria e indicadores.
 
 ## Controle multiusuário (Seção 3.4)
 
@@ -136,7 +137,7 @@ cd ../backend && npm start   # serve a API e o frontend compilado em http://loca
 ### Testes automatizados
 ```bash
 cd backend
-npm test     # 55 testes: unitários (regras), integração (API) e concorrência
+npm test     # 68 testes: unitários (regras), integração (API, séries) e concorrência
 ```
 
 ---
@@ -154,6 +155,10 @@ npm test     # 55 testes: unitários (regras), integração (API) e concorrênci
 | POST | `/api/reservas/:id/aprovar` | Aprovar (`forcar: true` para remanejar) | gestores |
 | POST | `/api/reservas/:id/rejeitar` | Rejeitar com motivo | gestores |
 | DELETE | `/api/reservas/:id` | Cancelar (remoção lógica) | dono / gestores |
+| POST | `/api/reservas/serie/verificar` | Prévia de reserva recorrente: situação de cada data | todos |
+| POST | `/api/reservas/serie` | Criar reserva recorrente (semanal) com as datas disponíveis | todos |
+| POST | `/api/reservas/serie/:id/aprovar` | Aprovar todas as datas pendentes da série | gestores |
+| DELETE | `/api/reservas/serie/:id` | Cancelar as próximas datas da série | dono / gestores |
 | GET | `/api/laboratorios/:id/disponibilidade?data=` | Ocupação do dia | todos |
 | GET/POST/PUT | `/api/laboratorios`, `/api/disciplinas`, `/api/usuarios` | Cadastros | administrativo |
 | GET | `/api/dashboard` | Indicadores de ocupação e demanda | gestores |

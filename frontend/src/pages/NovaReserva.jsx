@@ -3,7 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import Icone from '../components/Icone';
 import { Alerta, Campo, Cartao, Pagina, PrioridadeBadge, Sugestoes, useAviso } from '../components/ui';
-import { HORARIOS_AULA, PERFIS, TIPOS_DISCIPLINA, formatarDataLonga, hojeISO, minutos, paraHoraMin } from '../util';
+import {
+  DIAS, DIAS_CURTOS, HORARIOS_AULA, PERFIS, TIPOS_DISCIPLINA, formatarData, formatarDataLonga, hojeISO,
+  minutos, paraHoraMin, parseData, somarDias,
+} from '../util';
 import { useAuth } from '../contexto/AuthContext';
 
 const DECISOES = {
@@ -13,12 +16,59 @@ const DECISOES = {
   BLOQUEAR: { tipo: 'erro', texto: 'Horário indisponível: já existe reserva aprovada com prioridade igual ou superior. Escolha um dos horários sugeridos.' },
 };
 
+const SITUACOES = {
+  APROVAR: ['tag-ok', 'Aprovação automática'],
+  PENDENTE: ['tag-pratica', 'Aguardará aprovação'],
+  ANALISE: ['tag-aviso', 'Em análise (conflito)'],
+  BLOQUEAR: ['tag-perigo', 'Bloqueada – não será criada'],
+  INVALIDA: ['tag-perigo', 'Inválida – não será criada'],
+};
+
+/** Prévia de uma reserva recorrente: situação de cada data da série. */
+function PreviaSerie({ previa }) {
+  const { resumo, ocorrencias } = previa;
+  const prioridades = ocorrencias.map((o) => o.prioridade);
+  const tipo = resumo.criaveis === 0 ? 'erro' : resumo.criaveis < resumo.total ? 'aviso' : 'sucesso';
+  return (
+    <>
+      <Alerta tipo={tipo}>
+        <b>{resumo.criaveis} de {resumo.total}</b> datas podem ser reservadas
+        {resumo.aprovadasAutomaticamente > 0 && <> · {resumo.aprovadasAutomaticamente} com aprovação automática</>}
+        {resumo.pendentes > 0 && <> · {resumo.pendentes} aguardarão aprovação</>}
+        {resumo.bloqueadas + resumo.invalidas > 0 && <> · <b>{resumo.bloqueadas + resumo.invalidas} não serão criadas</b></>}.
+      </Alerta>
+      <p className="texto-apoio">Prioridade das datas: {Math.min(...prioridades)} a {Math.max(...prioridades)} (datas mais próximas pontuam mais).</p>
+      <ul className="lista-serie">
+        {ocorrencias.map((o) => {
+          const [classe, rotulo] = SITUACOES[o.situacao];
+          return (
+            <li key={o.data} className={['BLOQUEAR', 'INVALIDA'].includes(o.situacao) ? 'ignorada' : ''}>
+              <div className="lista-serie-linha">
+                <b>{formatarData(o.data)}</b> <span className="texto-apoio">{o.dia_semana}</span>
+                <span className={`tag ${classe}`}>{rotulo}</span>
+              </div>
+              {o.restricoes.length > 0 && <small>{o.restricoes[0]}</small>}
+              {o.situacao === 'BLOQUEAR' && o.conflitos[0] && (
+                <small>Ocupado por {o.conflitos[0].disciplina_nome || 'reserva'} ({o.conflitos[0].usuario_nome}).
+                  {o.sugestao && <> Livre: {o.sugestao.laboratorio}, {formatarData(o.sugestao.data)} {o.sugestao.hora_inicio}–{o.sugestao.hora_fim}.</>}
+                </small>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </>
+  );
+}
+
 /** Caso de uso "Solicitar Reserva" com verificação de conflitos e priorização em tempo real. */
 export default function NovaReserva() {
   const navegar = useNavigate();
   const avisar = useAviso();
   const { usuario } = useAuth();
   const podeAgendarParaOutros = usuario.perfil === 'ADMINISTRATIVO';
+  // Reservas recorrentes: docentes, coordenadores e funcionários administrativos
+  const podeRepetir = ['ADMINISTRATIVO', 'COORDENADOR', 'DOCENTE'].includes(usuario.perfil);
   const [usuarios, setUsuarios] = useState([]);
   const [params] = useSearchParams();
   const [labs, setLabs] = useState([]);
@@ -39,6 +89,9 @@ export default function NovaReserva() {
     qtd_alunos: '',
     finalidade: '',
     id_usuario: '',
+    repetir: false,
+    data_fim: '',
+    dias_semana: [],
   });
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
 
@@ -54,7 +107,8 @@ export default function NovaReserva() {
   }, [podeAgendarParaOutros, usuario.id]);
 
   const lab = labs.find((l) => String(l.id_laboratorio) === String(f.id_laboratorio));
-  const completo = f.id_laboratorio && f.data && f.hora_inicio && f.hora_fim && Number(f.qtd_alunos) > 0;
+  const completo = f.id_laboratorio && f.data && f.hora_inicio && f.hora_fim && Number(f.qtd_alunos) > 0
+    && (!f.repetir || (f.data_fim && f.dias_semana.length > 0));
   const corpo = useMemo(() => ({
     id_laboratorio: Number(f.id_laboratorio),
     id_disciplina: f.id_disciplina ? Number(f.id_disciplina) : null,
@@ -64,7 +118,20 @@ export default function NovaReserva() {
     qtd_alunos: Number(f.qtd_alunos),
     finalidade: f.finalidade || null,
     ...(f.id_usuario ? { id_usuario: Number(f.id_usuario) } : {}),
+    ...(f.repetir ? { data_fim: f.data_fim, dias_semana: f.dias_semana } : {}),
   }), [f]);
+
+  const alternarRepeticao = (ligar) => setF((x) => ({
+    ...x,
+    repetir: ligar,
+    // padrão: o dia da semana da data inicial, por 15 semanas (aprox. um semestre)
+    dias_semana: ligar && x.dias_semana.length === 0 ? [parseData(x.data).getDay()] : x.dias_semana,
+    data_fim: ligar && !x.data_fim ? somarDias(x.data, 7 * 15 - 1) : x.data_fim,
+  }));
+  const alternarDia = (d) => setF((x) => ({
+    ...x,
+    dias_semana: x.dias_semana.includes(d) ? x.dias_semana.filter((y) => y !== d) : [...x.dias_semana, d].sort(),
+  }));
 
   // Ocupação do laboratório no dia escolhido
   useEffect(() => {
@@ -79,13 +146,13 @@ export default function NovaReserva() {
     if (!completo) { setAnalise(null); return undefined; }
     setVerificando(true);
     const t = setTimeout(() => {
-      api.post('/reservas/verificar', corpo)
+      api.post(f.repetir ? '/reservas/serie/verificar' : '/reservas/verificar', corpo)
         .then(setAnalise)
         .catch((e) => setAnalise({ restricoes: [e.message], decisao: 'INVALIDA' }))
         .finally(() => setVerificando(false));
-    }, 350);
+    }, f.repetir ? 600 : 350);
     return () => clearTimeout(t);
-  }, [corpo, completo]);
+  }, [corpo, completo, f.repetir]);
 
   const usarSugestao = (s) => setF((x) => ({ ...x, id_laboratorio: String(s.id_laboratorio), data: s.data, hora_inicio: s.hora_inicio, hora_fim: s.hora_fim }));
 
@@ -94,6 +161,15 @@ export default function NovaReserva() {
     setEnviando(true);
     setErro(null);
     try {
+      if (f.repetir) {
+        const r = await api.post('/reservas/serie', corpo);
+        const partes = [`${r.criadas} reserva(s) semanais criadas`];
+        if (r.aprovadas) partes.push(`${r.aprovadas} já aprovada(s)`);
+        if (r.ignoradas.length) partes.push(`${r.ignoradas.length} data(s) ignorada(s) por conflito`);
+        avisar(partes.join(' · ') + (f.id_usuario ? '. A pessoa foi notificada.' : '.'));
+        navegar(f.id_usuario ? `/agenda?modo=semana&lab=${f.id_laboratorio}&data=${f.data}` : '/reservas/minhas');
+        return;
+      }
       const r = await api.post('/reservas', corpo);
       if (f.id_usuario) {
         avisar(`Reserva registrada para ${r.reserva.usuario_nome}${r.reserva.status === 'APROVADA' ? ' e aprovada' : ''}. A pessoa foi notificada.`);
@@ -106,13 +182,20 @@ export default function NovaReserva() {
       navegar('/reservas/minhas');
     } catch (er) {
       setErro({ texto: er.message, sugestoes: er.corpo?.sugestoes, campos: er.corpo?.campos });
+      if (er.corpo?.ocorrencias) setAnalise({ ocorrencias: er.corpo.ocorrencias, resumo: er.corpo.resumo });
     } finally {
       setEnviando(false);
     }
   };
 
-  const decisao = analise && !analise.restricoes?.length ? DECISOES[analise.decisao] : null;
-  const bloqueado = analise?.decisao === 'BLOQUEAR' || analise?.restricoes?.length > 0;
+  const ehSerie = !!analise?.ocorrencias;
+  const decisao = analise && !ehSerie && !analise.restricoes?.length ? DECISOES[analise.decisao] : null;
+  const bloqueado = ehSerie
+    ? analise.resumo.criaveis === 0
+    : analise?.decisao === 'BLOQUEAR' || analise?.restricoes?.length > 0;
+  const textoBotao = enviando ? 'Enviando…'
+    : ehSerie && f.repetir ? `Criar ${analise.resumo.criaveis} reserva${analise.resumo.criaveis === 1 ? '' : 's'}`
+      : decisao && analise.decisao === 'APROVAR' ? 'Confirmar reserva' : 'Enviar solicitação';
   const det = analise?.prioridade?.detalhe;
 
   return (
@@ -161,7 +244,7 @@ export default function NovaReserva() {
                 ))}
               </select>
             </Campo>
-            <Campo rotulo="Data *">
+            <Campo rotulo={f.repetir ? 'Data inicial *' : 'Data *'}>
               <input type="date" min={hojeISO()} value={f.data} onChange={(e) => set('data', e.target.value)} required />
             </Campo>
             <Campo rotulo="Quantidade de alunos *" ajuda={lab ? `Capacidade: ${lab.capacidade}` : undefined}>
@@ -181,6 +264,33 @@ export default function NovaReserva() {
             </div>
             <Campo rotulo="Início"><input type="time" step="300" value={f.hora_inicio} onChange={(e) => set('hora_inicio', e.target.value)} required /></Campo>
             <Campo rotulo="Término"><input type="time" step="300" value={f.hora_fim} onChange={(e) => set('hora_fim', e.target.value)} required /></Campo>
+            {podeRepetir && <div className="col-2 bloco-repeticao">
+              <div className="segmentado" role="group" aria-label="Repetição">
+                <button type="button" className={!f.repetir ? 'ativo' : ''} onClick={() => alternarRepeticao(false)}>Apenas nesta data</button>
+                <button type="button" className={f.repetir ? 'ativo' : ''} onClick={() => alternarRepeticao(true)}>Repetir semanalmente</button>
+              </div>
+              {f.repetir && (
+                <div className="form-grade repeticao-campos">
+                  <div className="col-2">
+                    <span className="campo-rotulo">Dias da semana em que leciona *</span>
+                    <div className="horarios-rapidos">
+                      {[1, 2, 3, 4, 5, 6].map((d) => (
+                        <button type="button" key={d} title={DIAS[d]}
+                          className={`chip ${f.dias_semana.includes(d) ? 'ativo' : ''}`} onClick={() => alternarDia(d)}>
+                          {DIAS_CURTOS[d]}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <Campo rotulo="Repetir até *" ajuda="Ex.: último dia de aula do semestre">
+                    <input type="date" min={f.data} max={somarDias(f.data, 200)} value={f.data_fim} onChange={(e) => set('data_fim', e.target.value)} required />
+                  </Campo>
+                  <p className="texto-apoio repeticao-dica">
+                    Cada data passa pelas mesmas regras de conflito e prioridade. As datas com conflito são mostradas na análise ao lado e não serão criadas.
+                  </p>
+                </div>
+              )}
+            </div>}
             <div className="col-2">
               <Campo rotulo="Finalidade / observações">
                 <input value={f.finalidade} maxLength={255} onChange={(e) => set('finalidade', e.target.value)} placeholder="Ex.: aula prática de listas encadeadas" />
@@ -189,7 +299,7 @@ export default function NovaReserva() {
             <div className="col-2 acoes-form">
               <button type="button" className="btn btn-contorno" onClick={() => navegar(-1)}>Voltar</button>
               <button className="btn btn-primario" disabled={!completo || enviando || bloqueado || verificando}>
-                {enviando ? 'Enviando…' : decisao && analise.decisao === 'APROVAR' ? 'Confirmar reserva' : 'Enviar solicitação'}
+                {textoBotao}
               </button>
             </div>
           </form>
@@ -197,9 +307,10 @@ export default function NovaReserva() {
 
         <div className="coluna-lateral">
           <Cartao titulo="Análise inteligente">
-            {!completo && <p className="texto-apoio">Preencha laboratório, data, horário e quantidade de alunos para verificar a disponibilidade.</p>}
-            {completo && verificando && <p className="texto-apoio"><span className="spinner" /> Verificando conflitos…</p>}
-            {completo && !verificando && analise && <>
+            {!completo && <p className="texto-apoio">Preencha laboratório, data, horário e quantidade de alunos{f.repetir ? ', os dias da semana e a data final' : ''} para verificar a disponibilidade.</p>}
+            {completo && verificando && <p className="texto-apoio"><span className="spinner" /> Verificando conflitos{f.repetir ? ' em todas as datas' : ''}…</p>}
+            {completo && !verificando && ehSerie && <PreviaSerie previa={analise} />}
+            {completo && !verificando && analise && !ehSerie && <>
               {analise.restricoes?.length > 0 && <Alerta tipo="erro">{analise.restricoes.map((r) => <div key={r}>{r}</div>)}</Alerta>}
               {decisao && <Alerta tipo={decisao.tipo}>{decisao.texto}</Alerta>}
               {analise.prioridade && (

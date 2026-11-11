@@ -29,11 +29,14 @@ const SELECT_RESERVA = `
          r.motivo_decisao, r.versao, r.criado_em, r.atualizado_em,
          u.nome AS usuario_nome, u.perfil AS usuario_perfil,
          r.id_criador, c.nome AS criador_nome,
+         r.id_serie, s.dias_semana AS serie_dias, s.data_inicio AS serie_inicio, s.data_fim AS serie_fim,
+         (SELECT COUNT(*)::int FROM reserva x WHERE x.id_serie = r.id_serie) AS serie_total,
          l.nome AS laboratorio_nome, l.capacidade AS laboratorio_capacidade,
          d.nome AS disciplina_nome, d.tipo AS disciplina_tipo, d.curso AS disciplina_curso
     FROM reserva r
     JOIN usuario u      ON u.id_usuario = r.id_usuario
     LEFT JOIN usuario c ON c.id_usuario = r.id_criador
+    LEFT JOIN serie s   ON s.id_serie = r.id_serie
     JOIN laboratorio l  ON l.id_laboratorio = r.id_laboratorio
     LEFT JOIN disciplina d ON d.id_disciplina = r.id_disciplina`;
 
@@ -186,6 +189,35 @@ async function simular(dados, usuario) {
   };
 }
 
+/** Grava uma reserva já avaliada (status conforme a decisão) e registra no histórico. */
+async function gravarReserva(cliente, { dados, av, beneficiario, usuario, emNomeDe, idSerie = null }) {
+  const status = av.decisao.acao === 'APROVAR' ? 'APROVADA' : 'PENDENTE';
+  const { rows } = await cliente.query(
+    `INSERT INTO reserva (id_usuario, id_laboratorio, id_disciplina, data, hora_inicio, hora_fim,
+                          status, prioridade, detalhe_prioridade, qtd_alunos, finalidade, motivo_decisao,
+                          id_criador, id_serie)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14) RETURNING id_reserva`,
+    [
+      beneficiario.id, dados.id_laboratorio, dados.id_disciplina || null, av.alvo.data,
+      av.alvo.hora_inicio, av.alvo.hora_fim, status, av.prioridade.total, av.prioridade.detalhe,
+      dados.qtd_alunos, dados.finalidade || null,
+      status === 'APROVADA' ? 'Aprovação automática: sem conflitos e solicitante com permissão de gestão.' : null,
+      usuario.id, idSerie,
+    ]
+  );
+  const id = rows[0].id_reserva;
+  await registrarHistorico(cliente, {
+    idReserva: id,
+    idUsuario: usuario.id,
+    acao: status === 'APROVADA' ? 'CRIADA_APROVADA' : 'SOLICITADA',
+    detalhes: {
+      prioridade: av.prioridade.total, decisao: av.decisao.acao,
+      conflitos: av.conflitos.map((c) => c.id_reserva), emNomeDe, idSerie: idSerie || undefined,
+    },
+  });
+  return buscarReserva(cliente, id);
+}
+
 /** Solicitar reserva (caso de uso "Solicitar Reserva" com <<include>> Verificar Conflitos / Definir Prioridades). */
 async function solicitar(dados, usuario) {
   const parametros = await obterParametros();
@@ -210,27 +242,8 @@ async function solicitar(dados, usuario) {
       return { bloqueada: true, av };
     }
 
-    const status = av.decisao.acao === 'APROVAR' ? 'APROVADA' : 'PENDENTE';
-    const { rows } = await cliente.query(
-      `INSERT INTO reserva (id_usuario, id_laboratorio, id_disciplina, data, hora_inicio, hora_fim,
-                            status, prioridade, detalhe_prioridade, qtd_alunos, finalidade, motivo_decisao, id_criador)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id_reserva`,
-      [
-        beneficiario.id, dados.id_laboratorio, dados.id_disciplina || null, av.alvo.data,
-        av.alvo.hora_inicio, av.alvo.hora_fim, status, av.prioridade.total, av.prioridade.detalhe,
-        dados.qtd_alunos, dados.finalidade || null,
-        status === 'APROVADA' ? 'Aprovação automática: sem conflitos e solicitante com permissão de gestão.' : null,
-        usuario.id,
-      ]
-    );
-    const id = rows[0].id_reserva;
-    await registrarHistorico(cliente, {
-      idReserva: id,
-      idUsuario: usuario.id,
-      acao: status === 'APROVADA' ? 'CRIADA_APROVADA' : 'SOLICITADA',
-      detalhes: { prioridade: av.prioridade.total, decisao: av.decisao.acao, conflitos: av.conflitos.map((c) => c.id_reserva), emNomeDe },
-    });
-    const reserva = await buscarReserva(cliente, id);
+    const reserva = await gravarReserva(cliente, { dados, av, beneficiario, usuario, emNomeDe });
+    const { status } = reserva;
     if (emNomeDe) {
       await notificar(cliente, beneficiario.id,
         status === 'APROVADA' ? 'Reserva registrada para você' : 'Solicitação registrada para você',
@@ -486,4 +499,11 @@ async function obter(id, usuario) {
   return r;
 }
 
-module.exports = { simular, solicitar, aprovar, rejeitar, alterar, cancelar, listar, obter };
+module.exports = {
+  simular, solicitar, aprovar, rejeitar, alterar, cancelar, listar, obter,
+  // usados pelo serviço de séries (reservas recorrentes)
+  internos: {
+    travarLaboratorios, resolverBeneficiario, avaliar, gravarReserva, buscarReserva,
+    reservasDoDia, resumoConflito, descrever, ehGestor, formatarData,
+  },
+};

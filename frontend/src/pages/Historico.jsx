@@ -12,6 +12,7 @@ const ACOES = {
   CANCELADA: 'Reserva cancelada',
   REMANEJADA: 'Reserva remanejada',
   BLOQUEADA_CONFLITO: 'Tentativa bloqueada por conflito',
+  SERIE_CRIADA: 'Série semanal criada',
   LOGIN: 'Acesso ao sistema',
   RELATORIO_GERADO: 'Relatório gerado',
   PARAMETROS_ALTERADOS: 'Regras de priorização alteradas',
@@ -34,6 +35,7 @@ function resumirDetalhes(h) {
     return `→ ${d.depois.data.split('-').reverse().join('/')} ${d.depois.hora_inicio}–${d.depois.hora_fim}${d.motivo ? ` · ${d.motivo}` : ''}`;
   }
   if (d.motivo) return d.motivo;
+  if (h.acao === 'SERIE_CRIADA') return `${d.criadas} data(s) criada(s), ${d.ignoradas} ignorada(s)${d.emNomeDe ? ` · em nome de ${d.emNomeDe.nome}` : ''}`;
   if (d.remanejadas?.length) return `remanejou nº ${d.remanejadas.join(', ')}`;
   if (d.emFavorDe) return `em favor da nº ${d.emFavorDe}`;
   if (d.prioridade !== undefined) return `prioridade ${d.prioridade}`;

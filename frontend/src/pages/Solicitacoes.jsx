@@ -55,7 +55,9 @@ export default function Solicitacoes() {
                       <td><PrioridadeBadge valor={r.prioridade} detalhe={r.detalhe_prioridade} /></td>
                       <td><b>{formatarData(r.data)}</b><br />{r.hora_inicio}–{r.hora_fim}</td>
                       <td>{r.laboratorio_nome}</td>
-                      <td>{r.disciplina_nome || r.finalidade || '—'}</td>
+                      <td>{r.disciplina_nome || r.finalidade || '—'}
+                        {r.id_serie && <div><span className="tag tag-serie" title="Reserva recorrente">Série semanal · {r.serie_total} datas</span></div>}
+                      </td>
                       <td>{r.usuario_nome}<div className="texto-apoio pequeno">{PERFIS[r.usuario_perfil]} · {formatarDataHora(r.criado_em)}</div>{r.id_criador && r.id_criador !== r.id_usuario && <div className="texto-apoio pequeno">registrada por {r.criador_nome}</div>}</td>
                       <td>{r.qtd_alunos}/{r.laboratorio_capacidade}</td>
                       <td>
@@ -69,6 +71,7 @@ export default function Solicitacoes() {
                         {aba === 'pendentes' && <>
                           <button className="btn btn-sm btn-sucesso" onClick={() => abrir('aprovar', r)} title="Aprovar"><Icone nome="check" tamanho={15} /> Aprovar</button>
                           <button className="btn btn-sm btn-perigo-contorno" onClick={() => abrir('rejeitar', r)} title="Rejeitar"><Icone nome="x" tamanho={15} /></button>
+                          {r.id_serie && <button className="btn btn-sm btn-sucesso" onClick={() => abrir('aprovarSerie', r)} title="Aprovar todas as datas pendentes da série">Série</button>}
                         </>}
                         <button className="btn btn-sm btn-contorno" onClick={() => abrir('alterar', r)} title="Alterar"><Icone nome="editar" tamanho={15} /></button>
                         <button className="btn btn-sm btn-contorno" onClick={() => abrir('detalhes', r)} title="Detalhes"><Icone nome="info" tamanho={15} /></button>

@@ -155,3 +155,16 @@ describe('sugerirHorarios', () => {
     for (let i = 1; i < sug.length; i++) assert.ok(sug[i].distancia >= sug[i - 1].distancia);
   });
 });
+
+describe('gerarDatasRecorrentes', () => {
+  test('gera apenas os dias da semana escolhidos dentro do período', () => {
+    const datas = r.gerarDatasRecorrentes('2026-11-30', '2026-12-20', [2, 4], P); // terças e quintas
+    assert.deepEqual(datas, ['2026-12-01', '2026-12-03', '2026-12-08', '2026-12-10', '2026-12-15', '2026-12-17']);
+  });
+  test('inclui as datas inicial e final quando coincidem com o dia escolhido', () => {
+    assert.deepEqual(r.gerarDatasRecorrentes('2026-12-01', '2026-12-15', [2], P), ['2026-12-01', '2026-12-08', '2026-12-15']);
+  });
+  test('ignora dias em que os laboratórios não funcionam (domingo)', () => {
+    assert.deepEqual(r.gerarDatasRecorrentes('2026-12-01', '2026-12-31', [0], P), []);
+  });
+});

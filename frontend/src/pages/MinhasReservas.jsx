@@ -53,7 +53,9 @@ export default function MinhasReservas() {
                     <td>{formatarData(r.data)}</td>
                     <td>{r.hora_inicio}–{r.hora_fim}</td>
                     <td>{r.laboratorio_nome}</td>
-                    <td>{r.disciplina_nome || r.finalidade || '—'}</td>
+                    <td>{r.disciplina_nome || r.finalidade || '—'}
+                      {r.id_serie && <div><span className="tag tag-serie">Semanal</span></div>}
+                    </td>
                     <td><PrioridadeBadge valor={r.prioridade} detalhe={r.detalhe_prioridade} /></td>
                     <td>
                       <StatusBadge status={r.status} />
