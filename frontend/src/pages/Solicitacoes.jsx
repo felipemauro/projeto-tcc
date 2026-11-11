@@ -56,7 +56,7 @@ export default function Solicitacoes() {
                       <td><b>{formatarData(r.data)}</b><br />{r.hora_inicio}–{r.hora_fim}</td>
                       <td>{r.laboratorio_nome}</td>
                       <td>{r.disciplina_nome || r.finalidade || '—'}</td>
-                      <td>{r.usuario_nome}<div className="texto-apoio pequeno">{PERFIS[r.usuario_perfil]} · {formatarDataHora(r.criado_em)}</div></td>
+                      <td>{r.usuario_nome}<div className="texto-apoio pequeno">{PERFIS[r.usuario_perfil]} · {formatarDataHora(r.criado_em)}</div>{r.id_criador && r.id_criador !== r.id_usuario && <div className="texto-apoio pequeno">registrada por {r.criador_nome}</div>}</td>
                       <td>{r.qtd_alunos}/{r.laboratorio_capacidade}</td>
                       <td>
                         {aba === 'pendentes' ? (

@@ -3,12 +3,13 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { api } from '../api';
 import Icone from '../components/Icone';
 import { Alerta, Campo, Cartao, Pagina, PrioridadeBadge, Sugestoes, useAviso } from '../components/ui';
-import { HORARIOS_AULA, TIPOS_DISCIPLINA, formatarDataLonga, hojeISO, minutos, paraHoraMin } from '../util';
+import { HORARIOS_AULA, PERFIS, TIPOS_DISCIPLINA, formatarDataLonga, hojeISO, minutos, paraHoraMin } from '../util';
+import { useAuth } from '../contexto/AuthContext';
 
 const DECISOES = {
-  APROVAR: { tipo: 'sucesso', texto: 'Horário livre. Sua reserva será aprovada automaticamente.' },
+  APROVAR: { tipo: 'sucesso', texto: 'Horário livre. A reserva será aprovada automaticamente.' },
   PENDENTE: { tipo: 'info', texto: 'Horário disponível. A solicitação será enviada para aprovação da coordenação.' },
-  ANALISE: { tipo: 'aviso', texto: 'Já existe reserva aprovada neste horário, mas sua solicitação tem prioridade maior. Ela será encaminhada para análise e possível remanejamento.' },
+  ANALISE: { tipo: 'aviso', texto: 'Já existe reserva aprovada neste horário, mas esta solicitação tem prioridade maior. Ela será encaminhada para análise e possível remanejamento.' },
   BLOQUEAR: { tipo: 'erro', texto: 'Horário indisponível: já existe reserva aprovada com prioridade igual ou superior. Escolha um dos horários sugeridos.' },
 };
 
@@ -16,6 +17,9 @@ const DECISOES = {
 export default function NovaReserva() {
   const navegar = useNavigate();
   const avisar = useAviso();
+  const { usuario } = useAuth();
+  const podeAgendarParaOutros = usuario.perfil === 'ADMINISTRATIVO';
+  const [usuarios, setUsuarios] = useState([]);
   const [params] = useSearchParams();
   const [labs, setLabs] = useState([]);
   const [disciplinas, setDisciplinas] = useState([]);
@@ -34,6 +38,7 @@ export default function NovaReserva() {
     hora_fim: inicioParam ? paraHoraMin(Math.min(minutos(inicioParam) + 100, 23 * 60)) : '',
     qtd_alunos: '',
     finalidade: '',
+    id_usuario: '',
   });
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
 
@@ -43,7 +48,10 @@ export default function NovaReserva() {
       setF((x) => (x.id_laboratorio ? x : { ...x, id_laboratorio: String(l[0]?.id_laboratorio || '') }));
     });
     api.get('/disciplinas').then(setDisciplinas);
-  }, []);
+    if (podeAgendarParaOutros) {
+      api.get('/usuarios').then((l) => setUsuarios(l.filter((u) => u.ativo && u.id_usuario !== usuario.id)));
+    }
+  }, [podeAgendarParaOutros, usuario.id]);
 
   const lab = labs.find((l) => String(l.id_laboratorio) === String(f.id_laboratorio));
   const completo = f.id_laboratorio && f.data && f.hora_inicio && f.hora_fim && Number(f.qtd_alunos) > 0;
@@ -55,6 +63,7 @@ export default function NovaReserva() {
     hora_fim: f.hora_fim,
     qtd_alunos: Number(f.qtd_alunos),
     finalidade: f.finalidade || null,
+    ...(f.id_usuario ? { id_usuario: Number(f.id_usuario) } : {}),
   }), [f]);
 
   // Ocupação do laboratório no dia escolhido
@@ -86,6 +95,11 @@ export default function NovaReserva() {
     setErro(null);
     try {
       const r = await api.post('/reservas', corpo);
+      if (f.id_usuario) {
+        avisar(`Reserva registrada para ${r.reserva.usuario_nome}${r.reserva.status === 'APROVADA' ? ' e aprovada' : ''}. A pessoa foi notificada.`);
+        navegar('/agenda?' + new URLSearchParams({ data: r.reserva.data }).toString());
+        return;
+      }
       avisar(r.reserva.status === 'APROVADA'
         ? 'Reserva confirmada e aprovada!'
         : 'Solicitação enviada! Você será notificado(a) quando for analisada.');
@@ -111,6 +125,25 @@ export default function NovaReserva() {
               <Sugestoes itens={erro.sugestoes} aoEscolher={usarSugestao} />
             </div>}
 
+            {podeAgendarParaOutros && (
+              <div className="col-2">
+                <Campo rotulo="Reservar para *" ajuda={f.id_usuario
+                  ? 'A reserva ficará no nome da pessoa selecionada, que será notificada. A prioridade considera o perfil dela.'
+                  : 'Escolha outra pessoa para registrar a reserva em nome dela.'}>
+                  <select value={f.id_usuario} onChange={(e) => set('id_usuario', e.target.value)}>
+                    <option value="">Para mim — {usuario.nome}</option>
+                    {['DOCENTE', 'COORDENADOR', 'DISCENTE', 'ADMINISTRATIVO'].map((perfil) => {
+                      const grupo = usuarios.filter((u) => u.perfil === perfil);
+                      return grupo.length > 0 && (
+                        <optgroup key={perfil} label={PERFIS[perfil]}>
+                          {grupo.map((u) => <option key={u.id_usuario} value={u.id_usuario}>{u.nome} ({u.email})</option>)}
+                        </optgroup>
+                      );
+                    })}
+                  </select>
+                </Campo>
+              </div>
+            )}
             <Campo rotulo="Laboratório *">
               <select value={f.id_laboratorio} onChange={(e) => set('id_laboratorio', e.target.value)} required>
                 {labs.map((l) => <option key={l.id_laboratorio} value={l.id_laboratorio}>{l.nome} — {l.capacidade} lugares</option>)}

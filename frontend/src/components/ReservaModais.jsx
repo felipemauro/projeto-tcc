@@ -48,6 +48,7 @@ export function DetalhesReserva({ reserva, aoFechar, aoAgir }) {
         <dt>Horário</dt><dd>{r.hora_inicio} às {r.hora_fim}</dd>
         <dt>Disciplina</dt><dd>{r.disciplina_nome ? `${r.disciplina_nome} (${TIPOS_DISCIPLINA[r.disciplina_tipo]})` : '—'}</dd>
         <dt>Solicitante</dt><dd>{r.usuario_nome} · {PERFIS[r.usuario_perfil]}</dd>
+        {r.id_criador && r.id_criador !== r.id_usuario && <><dt>Registrada por</dt><dd>{r.criador_nome}</dd></>}
         <dt>Alunos</dt><dd>{r.qtd_alunos} de {r.laboratorio_capacidade} lugares</dd>
         {r.finalidade && <><dt>Finalidade</dt><dd>{r.finalidade}</dd></>}
         <dt>Prioridade</dt>

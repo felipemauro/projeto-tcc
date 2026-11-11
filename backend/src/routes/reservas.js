@@ -17,6 +17,8 @@ const esquemaReserva = z.object({
   hora_fim: hora,
   qtd_alunos: z.coerce.number().int().positive('Informe a quantidade de alunos.'),
   finalidade: z.string().trim().max(255).nullable().optional(),
+  // Somente o funcionário administrativo: registrar a reserva em nome de outra pessoa
+  id_usuario: id.optional(),
 });
 
 // GET /api/reservas?inicio&fim&id_laboratorio&status&minhas=true&ordem=prioridade
@@ -52,7 +54,7 @@ router.post('/', async (req, res) => {
 
 // PATCH /api/reservas/:id – caso de uso "Alterar Reserva"
 router.patch('/:id', async (req, res) => {
-  const dados = esquemaReserva.partial().extend({
+  const dados = esquemaReserva.omit({ id_usuario: true }).partial().extend({
     versao: z.coerce.number().int().optional(),
     motivo: z.string().trim().max(500).optional(),
   }).parse(req.body);

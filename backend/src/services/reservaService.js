@@ -28,10 +28,12 @@ const SELECT_RESERVA = `
          r.status, r.prioridade, r.detalhe_prioridade, r.qtd_alunos, r.finalidade,
          r.motivo_decisao, r.versao, r.criado_em, r.atualizado_em,
          u.nome AS usuario_nome, u.perfil AS usuario_perfil,
+         r.id_criador, c.nome AS criador_nome,
          l.nome AS laboratorio_nome, l.capacidade AS laboratorio_capacidade,
          d.nome AS disciplina_nome, d.tipo AS disciplina_tipo, d.curso AS disciplina_curso
     FROM reserva r
     JOIN usuario u      ON u.id_usuario = r.id_usuario
+    LEFT JOIN usuario c ON c.id_usuario = r.id_criador
     JOIN laboratorio l  ON l.id_laboratorio = r.id_laboratorio
     LEFT JOIN disciplina d ON d.id_disciplina = r.id_disciplina`;
 
@@ -102,7 +104,7 @@ async function calcularSugestoes(cliente, solicitacao, parametros) {
  * Avalia uma solicitação: restrições rígidas, prioridade, conflitos,
  * decisão e (se necessário) sugestões. Não grava nada.
  */
-async function avaliar(cliente, dados, usuario, parametros, laboratorio, idIgnorar) {
+async function avaliar(cliente, dados, usuario, parametros, laboratorio, idIgnorar, executor = usuario) {
   const alvo = {
     id_reserva: idIgnorar,
     id_laboratorio: dados.id_laboratorio,
@@ -127,7 +129,9 @@ async function avaliar(cliente, dados, usuario, parametros, laboratorio, idIgnor
   const existentes = restricoes.length ? [] : await reservasDoDia(cliente, alvo.id_laboratorio, alvo.data);
   const conflitos = regra.verificarConflitos(alvo, existentes);
   const decisao = regra.decidirSolicitacao(
-    { prioridade: prioridade.total, perfil: usuario.perfil, conflitos }, parametros
+    // A prioridade considera o perfil de quem usará o laboratório; a aprovação
+    // automática considera o perfil de quem está registrando a reserva.
+    { prioridade: prioridade.total, perfil: executor.perfil, conflitos }, parametros
   );
   const precisaSugestao = restricoes.length === 0 && conflitos.length > 0;
   const sugestoes = precisaSugestao ? await calcularSugestoes(cliente, alvo, parametros) : [];
@@ -144,6 +148,22 @@ const resumoConflito = (c) => ({
   disciplina_nome: c.disciplina_nome,
 });
 
+/**
+ * Define para quem a reserva será registrada. Somente o Funcionário
+ * Administrativo pode agendar em nome de outra pessoa.
+ */
+async function resolverBeneficiario(cliente, idUsuario, usuario) {
+  if (!idUsuario || Number(idUsuario) === usuario.id) return usuario;
+  if (usuario.perfil !== 'ADMINISTRATIVO') {
+    throw new ErroApi(403, 'Apenas o funcionário administrativo pode agendar em nome de outra pessoa.');
+  }
+  const { rows } = await cliente.query(
+    'SELECT id_usuario AS id, nome, perfil FROM usuario WHERE id_usuario = $1 AND ativo', [idUsuario]
+  );
+  if (!rows[0]) throw new ErroApi(400, 'Usuário selecionado não encontrado ou inativo.');
+  return rows[0];
+}
+
 // =====================================================================
 // Operações públicas
 // =====================================================================
@@ -155,7 +175,8 @@ async function simular(dados, usuario) {
     'SELECT id_laboratorio, nome, capacidade, ativo FROM laboratorio WHERE id_laboratorio = $1',
     [dados.id_laboratorio]
   );
-  const r = await avaliar(db, dados, usuario, parametros, rows[0], dados.id_reserva);
+  const beneficiario = await resolverBeneficiario(db, dados.id_usuario, usuario);
+  const r = await avaliar(db, dados, beneficiario, parametros, rows[0], dados.id_reserva, usuario);
   return {
     restricoes: r.restricoes,
     prioridade: r.prioridade,
@@ -172,7 +193,9 @@ async function solicitar(dados, usuario) {
   const resultado = await db.transacao(async (cliente) => {
     const labs = await travarLaboratorios(cliente, [dados.id_laboratorio]); // bloqueio pessimista
     const laboratorio = labs.get(Number(dados.id_laboratorio));
-    const av = await avaliar(cliente, dados, usuario, parametros, laboratorio);
+    const beneficiario = await resolverBeneficiario(cliente, dados.id_usuario, usuario);
+    const emNomeDe = beneficiario.id !== usuario.id ? { id: beneficiario.id, nome: beneficiario.nome } : undefined;
+    const av = await avaliar(cliente, dados, beneficiario, parametros, laboratorio, undefined, usuario);
 
     if (av.restricoes.length) {
       throw new ErroApi(422, av.restricoes[0], { restricoes: av.restricoes });
@@ -182,7 +205,7 @@ async function solicitar(dados, usuario) {
       await registrarHistorico(cliente, {
         idUsuario: usuario.id,
         acao: 'BLOQUEADA_CONFLITO',
-        detalhes: { solicitacao: av.alvo, prioridade: av.prioridade.total, conflitos: av.conflitos.map((c) => c.id_reserva) },
+        detalhes: { solicitacao: av.alvo, prioridade: av.prioridade.total, conflitos: av.conflitos.map((c) => c.id_reserva), emNomeDe },
       });
       return { bloqueada: true, av };
     }
@@ -190,13 +213,14 @@ async function solicitar(dados, usuario) {
     const status = av.decisao.acao === 'APROVAR' ? 'APROVADA' : 'PENDENTE';
     const { rows } = await cliente.query(
       `INSERT INTO reserva (id_usuario, id_laboratorio, id_disciplina, data, hora_inicio, hora_fim,
-                            status, prioridade, detalhe_prioridade, qtd_alunos, finalidade, motivo_decisao)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id_reserva`,
+                            status, prioridade, detalhe_prioridade, qtd_alunos, finalidade, motivo_decisao, id_criador)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id_reserva`,
       [
-        usuario.id, dados.id_laboratorio, dados.id_disciplina || null, av.alvo.data,
+        beneficiario.id, dados.id_laboratorio, dados.id_disciplina || null, av.alvo.data,
         av.alvo.hora_inicio, av.alvo.hora_fim, status, av.prioridade.total, av.prioridade.detalhe,
         dados.qtd_alunos, dados.finalidade || null,
         status === 'APROVADA' ? 'Aprovação automática: sem conflitos e solicitante com permissão de gestão.' : null,
+        usuario.id,
       ]
     );
     const id = rows[0].id_reserva;
@@ -204,9 +228,15 @@ async function solicitar(dados, usuario) {
       idReserva: id,
       idUsuario: usuario.id,
       acao: status === 'APROVADA' ? 'CRIADA_APROVADA' : 'SOLICITADA',
-      detalhes: { prioridade: av.prioridade.total, decisao: av.decisao.acao, conflitos: av.conflitos.map((c) => c.id_reserva) },
+      detalhes: { prioridade: av.prioridade.total, decisao: av.decisao.acao, conflitos: av.conflitos.map((c) => c.id_reserva), emNomeDe },
     });
-    return { bloqueada: false, av, reserva: await buscarReserva(cliente, id) };
+    const reserva = await buscarReserva(cliente, id);
+    if (emNomeDe) {
+      await notificar(cliente, beneficiario.id,
+        status === 'APROVADA' ? 'Reserva registrada para você' : 'Solicitação registrada para você',
+        `${usuario.nome} registrou uma reserva em seu nome no ${descrever(reserva)}${status === 'APROVADA' ? ', já aprovada' : ', aguardando aprovação'}.`);
+    }
+    return { bloqueada: false, av, reserva, beneficiario };
   });
 
   if (resultado.bloqueada) {
@@ -219,6 +249,7 @@ async function solicitar(dados, usuario) {
   }
 
   eventos.emitir('reserva', { acao: 'criada', id_reserva: resultado.reserva.id_reserva });
+  if (resultado.beneficiario.id !== usuario.id) eventos.emitir('notificacao', {}, resultado.beneficiario.id);
   return {
     reserva: resultado.reserva,
     decisao: resultado.av.decisao.acao,

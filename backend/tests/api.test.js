@@ -162,6 +162,46 @@ describe('Aprovação, remanejamento e controle de concorrência otimista', () =
   });
 });
 
+describe('Agendamento em nome de outra pessoa', () => {
+  test('administrativo registra reserva em nome de um docente', async () => {
+    const idDocB = (await pool.query("SELECT id_usuario FROM usuario WHERE email = 'doc.b@t.br'")).rows[0].id_usuario;
+    const idAdmin = (await pool.query("SELECT id_usuario FROM usuario WHERE email = 'admin@t.br'")).rows[0].id_usuario;
+    const verif = await admin.post('/api/reservas/verificar', {
+      id_laboratorio: 3, id_disciplina: 1, data: DATA, hora_inicio: '07:30', hora_fim: '09:10', qtd_alunos: 15, id_usuario: idDocB,
+    });
+    assert.equal(verif.body.prioridade.detalhe.perfil.criterio, 'DOCENTE', 'prioridade usa o perfil de quem usará o laboratório');
+    const r = await admin.post('/api/reservas', {
+      id_laboratorio: 3, id_disciplina: 1, data: DATA, hora_inicio: '07:30', hora_fim: '09:10', qtd_alunos: 15, id_usuario: idDocB,
+    });
+    assert.equal(r.status, 201);
+    assert.equal(r.body.reserva.id_usuario, idDocB);
+    assert.equal(r.body.reserva.id_criador, idAdmin);
+    assert.equal(r.body.reserva.criador_nome, 'Admin');
+    assert.equal(r.body.reserva.status, 'APROVADA', 'aprovação automática pelo perfil de quem registra');
+    const minhas = (await docB.get('/api/reservas?minhas=true')).body;
+    assert.ok(minhas.some((x) => x.id_reserva === r.body.reserva.id_reserva), 'aparece em Minhas reservas do docente');
+    const notif = (await docB.get('/api/notificacoes')).body;
+    assert.ok(notif.some((n) => n.titulo === 'Reserva registrada para você'));
+  });
+
+  test('outros perfis não podem agendar em nome de terceiros', async () => {
+    const idDocB = (await pool.query("SELECT id_usuario FROM usuario WHERE email = 'doc.b@t.br'")).rows[0].id_usuario;
+    for (const u of [docA, coord]) {
+      const r = await u.post('/api/reservas', {
+        id_laboratorio: 3, data: DATA, hora_inicio: '16:00', hora_fim: '17:00', qtd_alunos: 5, id_usuario: idDocB,
+      });
+      assert.equal(r.status, 403);
+    }
+  });
+
+  test('usuário inexistente é recusado', async () => {
+    const r = await admin.post('/api/reservas', {
+      id_laboratorio: 3, data: DATA, hora_inicio: '16:00', hora_fim: '17:00', qtd_alunos: 5, id_usuario: 9999,
+    });
+    assert.equal(r.status, 400);
+  });
+});
+
 describe('Alteração e cancelamento', () => {
   let minha;
   before(async () => {
