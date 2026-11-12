@@ -17,8 +17,8 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     const expirou = () => setUsuario(null);
-    window.addEventListener('sal:sessao-expirada', expirou);
-    return () => window.removeEventListener('sal:sessao-expirada', expirou);
+    window.addEventListener('sali:sessao-expirada', expirou);
+    return () => window.removeEventListener('sali:sessao-expirada', expirou);
   }, []);
 
   const entrar = useCallback(async (email, senha) => {

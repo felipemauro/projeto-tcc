@@ -15,7 +15,7 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors({ origin: config.origemFrontend.split(',') }));
 app.use(express.json({ limit: '100kb' }));
 
-app.get('/api/saude', (_req, res) => res.json({ status: 'ok', servico: 'SAL – UEMG Divinópolis' }));
+app.get('/api/saude', (_req, res) => res.json({ status: 'ok', servico: 'SALI – UEMG Divinópolis' }));
 
 // Rotas públicas
 app.use('/api/auth', require('./routes/auth'));

@@ -1,1 +1,1 @@
-CREATE DATABASE sal_test OWNER sal;
+CREATE DATABASE sali_test OWNER sali;

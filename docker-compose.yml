@@ -3,20 +3,20 @@
 services:
   postgres:
     image: postgres:16
-    container_name: sal-postgres
+    container_name: sali-postgres
     environment:
-      POSTGRES_USER: sal
-      POSTGRES_PASSWORD: sal
-      POSTGRES_DB: sal
+      POSTGRES_USER: sali
+      POSTGRES_PASSWORD: sali
+      POSTGRES_DB: sali
     ports:
       - "5432:5432"
     volumes:
-      - sal-dados:/var/lib/postgresql/data
+      - sali-dados:/var/lib/postgresql/data
       - ./docker/criar-banco-teste.sql:/docker-entrypoint-initdb.d/criar-banco-teste.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sal"]
+      test: ["CMD-SHELL", "pg_isready -U sali"]
       interval: 5s
       retries: 10
 
 volumes:
-  sal-dados:
+  sali-dados:

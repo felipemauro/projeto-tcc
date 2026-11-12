@@ -1,5 +1,5 @@
 // Ambiente de teste: banco separado e limites relaxados
-process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgres://sal:sal@localhost:5432/sal_test';
+process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgres://sali:sali@localhost:5432/sali_test';
 process.env.LOGIN_RATE_LIMIT = '10000';
 
 const request = require('supertest');

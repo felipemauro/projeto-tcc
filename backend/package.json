@@ -1,5 +1,5 @@
 {
-  "name": "sal-backend",
+  "name": "sali-backend",
   "version": "1.0.0",
   "description": "API REST do Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário (UEMG Divinópolis)",
   "main": "src/server.js",

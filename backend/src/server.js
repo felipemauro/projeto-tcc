@@ -3,7 +3,7 @@ const config = require('./config');
 const { pool } = require('./db/pool');
 
 const servidor = app.listen(config.porta, () => {
-  console.log(`API do SAL em execução: http://localhost:${config.porta}/api`);
+  console.log(`API do SALI em execução: http://localhost:${config.porta}/api`);
 });
 
 function encerrar() {

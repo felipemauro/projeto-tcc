@@ -1,4 +1,4 @@
-# Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário
+# SALI – Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário
 
 Protótipo desenvolvido como Trabalho de Conclusão de Curso em **Engenharia da Computação** – **UEMG Unidade Divinópolis**.
 
@@ -34,7 +34,7 @@ frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  Pos
 | Classe `Reserva`: `solicitar()`, `aprovar()`, `rejeitar()`, `alterar()` | `backend/src/services/reservaService.js` |
 | Casos de uso (Figura 1) | Rotas em `backend/src/routes/` e telas em `frontend/src/pages/` |
 | Diagrama de sequência (Seção 3.2.3) | `docs/diagrama-sequencia-solicitar-reserva.puml` |
-| Testes de API com Postman (Tabela 1) | `docs/SAL.postman_collection.json` |
+| Testes de API com Postman (Tabela 1) | `docs/SALI.postman_collection.json` |
 
 ### Objetivos específicos × funcionalidades
 
@@ -90,9 +90,9 @@ docker compose up -d
 ```
 Ou, em um PostgreSQL já instalado, crie o usuário e os bancos:
 ```sql
-CREATE USER sal WITH PASSWORD 'sal';
-CREATE DATABASE sal OWNER sal;
-CREATE DATABASE sal_test OWNER sal;   -- usado pelos testes automatizados
+CREATE USER sali WITH PASSWORD 'sali';
+CREATE DATABASE sali OWNER sali;
+CREATE DATABASE sali_test OWNER sali;   -- usado pelos testes automatizados
 ```
 > A extensão `btree_gist` é criada pela migração; o usuário precisa de permissão para isso (dono do banco ou superusuário).
 
@@ -167,7 +167,7 @@ npm test     # 68 testes: unitários (regras), integração (API, séries) e con
 | GET/PUT | `/api/parametros` | Pesos da priorização e funcionamento | leitura: todos · escrita: administrativo |
 | GET | `/api/eventos?token=` | Eventos em tempo real (SSE) | todos |
 
-A coleção completa para o Postman está em `docs/SAL.postman_collection.json`.
+A coleção completa para o Postman está em `docs/SALI.postman_collection.json`.
 
 ---
 

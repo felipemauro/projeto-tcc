@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "SAL – Agendamento de Laboratórios (UEMG)",
+    "name": "SALI – Agendamento de Laboratórios (UEMG)",
     "description": "Coleção de testes da API REST. Execute primeiro um dos logins: o token é salvo automaticamente.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },

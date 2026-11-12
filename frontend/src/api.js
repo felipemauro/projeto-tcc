@@ -1,6 +1,6 @@
 /** Cliente HTTP da API REST (JSON + token JWT). */
 const BASE = import.meta.env.VITE_API_URL || '/api';
-const CHAVE_TOKEN = 'sal.token';
+const CHAVE_TOKEN = 'sali.token';
 
 export const sessao = {
   token: () => localStorage.getItem(CHAVE_TOKEN),
@@ -34,7 +34,7 @@ async function requisitar(metodo, caminho, corpo) {
 
   if (resposta.status === 401 && token) {
     sessao.limpar();
-    window.dispatchEvent(new Event('sal:sessao-expirada'));
+    window.dispatchEvent(new Event('sali:sessao-expirada'));
   }
   const tipo = resposta.headers.get('content-type') || '';
   const dados = tipo.includes('application/json') ? await resposta.json() : await resposta.text();
