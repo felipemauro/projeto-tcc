@@ -21,7 +21,9 @@ const PARAMETROS_PADRAO = Object.freeze({
     ocupacaoMax: 25,
     perfil: { ADMINISTRATIVO: 10, COORDENADOR: 10, DOCENTE: 10, DISCENTE: 0 },
   },
-  aprovacaoAutomatica: ['ADMINISTRATIVO', 'COORDENADOR'],
+  // Apenas o funcionário administrativo tem aprovação automática; as solicitações do
+  // coordenador seguem para a aba Solicitações e são aprovadas manualmente.
+  aprovacaoAutomatica: ['ADMINISTRATIVO'],
   sugestoes: { janelaDias: 7, passoMinutos: 30, maximo: 6 },
 });
 

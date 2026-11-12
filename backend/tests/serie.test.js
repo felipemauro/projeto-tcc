@@ -26,7 +26,7 @@ describe('Reservas recorrentes', () => {
   test('prévia lista todas as datas e aponta a que tem conflito', async () => {
     // ocupa uma das quintas com reserva aprovada de prioridade alta
     const quinta = somarDias(INICIO, 9);
-    const bloqueio = await coord.post('/api/reservas', {
+    const bloqueio = await admin.post('/api/reservas', {
       id_laboratorio: 1, id_disciplina: 1, data: quinta, hora_inicio: '19:00', hora_fim: '22:00', qtd_alunos: 40,
     });
     assert.equal(bloqueio.body.reserva.status, 'APROVADA');

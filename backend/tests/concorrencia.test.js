@@ -8,11 +8,12 @@ const assert = require('node:assert/strict');
 const { pool, resetarBanco, login, dataFutura, api } = require('./helpers');
 
 const DATA = dataFutura(4, 4);
-let coord;
+let coord, admin;
 
 before(async () => {
   await resetarBanco();
   coord = api(await login('coord@t.br'));
+  admin = api(await login('admin@t.br'));
 });
 after(() => pool.end());
 
@@ -33,7 +34,7 @@ describe('Condição de corrida em solicitações simultâneas', () => {
       hora_inicio: '08:00', hora_fim: i % 2 ? '09:40' : '10:00', qtd_alunos: 30,
     });
     const respostas = await Promise.all(
-      Array.from({ length: 20 }, (_, i) => coord.post('/api/reservas', corpo(i)))
+      Array.from({ length: 20 }, (_, i) => admin.post('/api/reservas', corpo(i)))
     );
     const criadas = respostas.filter((r) => r.status === 201);
     const conflitos = respostas.filter((r) => r.status === 409);

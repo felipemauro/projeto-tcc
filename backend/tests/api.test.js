@@ -63,8 +63,17 @@ describe('Solicitação de reservas e regras inteligentes', () => {
     assert.equal(r.body.prioridade.detalhe.natureza.criterio, 'PRATICA');
   });
 
-  test('coordenador sem conflitos tem aprovação automática', async () => {
+  test('coordenador solicita e a reserva fica pendente (aprovação manual)', async () => {
     const r = await coord.post('/api/reservas', {
+      id_laboratorio: 1, id_disciplina: 1, data: DATA, hora_inicio: '10:00', hora_fim: '11:00', qtd_alunos: 30,
+    });
+    assert.equal(r.status, 201);
+    assert.equal(r.body.reserva.status, 'PENDENTE');
+    assert.equal(r.body.decisao, 'PENDENTE');
+  });
+
+  test('funcionário administrativo sem conflitos tem aprovação automática', async () => {
+    const r = await admin.post('/api/reservas', {
       id_laboratorio: 2, id_disciplina: 1, data: DATA, hora_inicio: '13:00', hora_fim: '15:00', qtd_alunos: 30,
     });
     assert.equal(r.status, 201);
@@ -112,7 +121,7 @@ describe('Aprovação, remanejamento e controle de concorrência otimista', () =
 
   test('prioridade maior que a aprovada → encaminhada para análise', async () => {
     // Reserva aprovada de baixa prioridade (extracurricular, poucos alunos)
-    baixa = (await coord.post('/api/reservas', {
+    baixa = (await admin.post('/api/reservas', {
       id_laboratorio: 3, id_disciplina: 3, data: DATA, hora_inicio: '19:00', hora_fim: '20:40', qtd_alunos: 4,
     })).body.reserva;
     assert.equal(baixa.status, 'APROVADA');

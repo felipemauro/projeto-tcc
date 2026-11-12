@@ -198,7 +198,11 @@ export default function NovaReserva() {
   };
 
   const ehSerie = !!analise?.ocorrencias;
-  const decisao = analise && !ehSerie && !analise.restricoes?.length ? DECISOES[analise.decisao] : null;
+  const decisaoBase = analise && !ehSerie && !analise.restricoes?.length ? DECISOES[analise.decisao] : null;
+  // O coordenador aprova as próprias solicitações manualmente, na aba Solicitações
+  const decisao = decisaoBase && analise.decisao === 'PENDENTE' && usuario.perfil === 'COORDENADOR'
+    ? { ...decisaoBase, texto: 'Horário disponível. A solicitação ficará pendente: aprove-a na aba Solicitações.' }
+    : decisaoBase;
   const bloqueado = ehSerie
     ? analise.resumo.criaveis === 0
     : analise?.decisao === 'BLOQUEAR' || analise?.restricoes?.length > 0;

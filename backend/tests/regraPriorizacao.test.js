@@ -105,8 +105,11 @@ describe('decidirSolicitacao', () => {
   test('encaminha para análise quando a aprovada tem prioridade menor', () => {
     assert.equal(r.decidirSolicitacao({ prioridade: 80, perfil: 'DOCENTE', conflitos: [aprovada(40)] }, P).acao, 'ANALISE');
   });
-  test('gestores sem conflitos têm aprovação automática', () => {
-    assert.equal(r.decidirSolicitacao({ prioridade: 10, perfil: 'COORDENADOR', conflitos: [] }, P).acao, 'APROVAR');
+  test('funcionário administrativo sem conflitos tem aprovação automática', () => {
+    assert.equal(r.decidirSolicitacao({ prioridade: 10, perfil: 'ADMINISTRATIVO', conflitos: [] }, P).acao, 'APROVAR');
+  });
+  test('coordenador fica pendente de aprovação manual', () => {
+    assert.equal(r.decidirSolicitacao({ prioridade: 90, perfil: 'COORDENADOR', conflitos: [] }, P).acao, 'PENDENTE');
   });
   test('docentes ficam pendentes de aprovação', () => {
     assert.equal(r.decidirSolicitacao({ prioridade: 90, perfil: 'DOCENTE', conflitos: [] }, P).acao, 'PENDENTE');
