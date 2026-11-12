@@ -35,6 +35,13 @@ function exigirPermissaoSerie(usuario) {
   }
 }
 
+/** A série também não pode ser registrada em nome de um discente. */
+function exigirBeneficiarioSerie(beneficiario) {
+  if (!PERFIS_SERIE.includes(beneficiario.perfil)) {
+    throw new ErroApi(403, 'Não é possível registrar reservas recorrentes para discentes. Para discentes, registre uma data por vez.');
+  }
+}
+
 function gerarDatas(dados, parametros) {
   if (dados.data_fim < dados.data) throw new ErroApi(400, 'A data final deve ser igual ou posterior à data inicial.');
   if (diferencaDias(dados.data_fim, dados.data) > LIMITE_DIAS) {
@@ -89,6 +96,7 @@ async function simularSerie(dados, usuario) {
     [dados.id_laboratorio]
   );
   const beneficiario = await resolverBeneficiario(db, dados.id_usuario, usuario);
+  exigirBeneficiarioSerie(beneficiario);
   const ocorrencias = [];
   for (const data of datas) {
     const av = await avaliar(db, { ...dados, data }, beneficiario, parametros, rows[0], undefined, usuario);
@@ -108,6 +116,7 @@ async function criarSerie(dados, usuario) {
     const laboratorio = labs.get(Number(dados.id_laboratorio));
     if (!laboratorio) throw new ErroApi(400, 'Laboratório não encontrado.');
     const beneficiario = await resolverBeneficiario(cliente, dados.id_usuario, usuario);
+    exigirBeneficiarioSerie(beneficiario);
     const emNomeDe = beneficiario.id !== usuario.id ? { id: beneficiario.id, nome: beneficiario.nome } : undefined;
 
     // Avalia todas as datas antes de gravar

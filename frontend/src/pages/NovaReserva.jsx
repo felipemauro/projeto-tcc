@@ -68,7 +68,8 @@ export default function NovaReserva() {
   const { usuario } = useAuth();
   const podeAgendarParaOutros = usuario.perfil === 'ADMINISTRATIVO';
   // Reservas recorrentes: docentes, coordenadores e funcionários administrativos
-  const podeRepetir = ['ADMINISTRATIVO', 'COORDENADOR', 'DOCENTE'].includes(usuario.perfil);
+  const perfisSerie = ['ADMINISTRATIVO', 'COORDENADOR', 'DOCENTE'];
+  const podeRepetirPerfil = perfisSerie.includes(usuario.perfil);
   const [usuarios, setUsuarios] = useState([]);
   const [params] = useSearchParams();
   const [labs, setLabs] = useState([]);
@@ -94,6 +95,14 @@ export default function NovaReserva() {
     dias_semana: [],
   });
   const set = (k, v) => setF((x) => ({ ...x, [k]: v }));
+
+  // A repetição semanal não vale para discentes (nem quando o administrativo agenda para um discente)
+  const beneficiarioSelecionado = usuarios.find((u) => String(u.id_usuario) === String(f.id_usuario));
+  const paraDiscente = beneficiarioSelecionado?.perfil === 'DISCENTE';
+  const podeRepetir = podeRepetirPerfil && !paraDiscente;
+  useEffect(() => {
+    if (!podeRepetir && f.repetir) setF((x) => ({ ...x, repetir: false }));
+  }, [podeRepetir, f.repetir]);
 
   useEffect(() => {
     api.get('/laboratorios').then((l) => {
@@ -264,6 +273,9 @@ export default function NovaReserva() {
             </div>
             <Campo rotulo="Início"><input type="time" step="300" value={f.hora_inicio} onChange={(e) => set('hora_inicio', e.target.value)} required /></Campo>
             <Campo rotulo="Término"><input type="time" step="300" value={f.hora_fim} onChange={(e) => set('hora_fim', e.target.value)} required /></Campo>
+            {podeRepetirPerfil && paraDiscente && (
+              <p className="col-2 texto-apoio aviso-repeticao">Reservas semanais não estão disponíveis para discentes: registre uma data por vez.</p>
+            )}
             {podeRepetir && <div className="col-2 bloco-repeticao">
               <div className="segmentado" role="group" aria-label="Repetição">
                 <button type="button" className={!f.repetir ? 'ativo' : ''} onClick={() => alternarRepeticao(false)}>Apenas nesta data</button>

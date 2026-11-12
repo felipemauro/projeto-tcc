@@ -96,6 +96,17 @@ describe('Reservas recorrentes', () => {
     assert.equal(unica.status, 201, 'reserva de uma única data continua permitida');
   });
 
+  test('administrativo não pode registrar série em nome de discente', async () => {
+    const idDisc = (await pool.query("SELECT id_usuario FROM usuario WHERE email = 'disc@t.br'")).rows[0].id_usuario;
+    const corpo = { ...base, id_laboratorio: 3, qtd_alunos: 10, hora_inicio: '13:00', hora_fim: '14:00', id_usuario: idDisc };
+    assert.equal((await admin.post('/api/reservas/serie/verificar', corpo)).status, 403);
+    const r = await admin.post('/api/reservas/serie', corpo);
+    assert.equal(r.status, 403);
+    assert.match(r.body.erro, /discentes/);
+    const unica = await admin.post('/api/reservas', { ...corpo, hora_inicio: '14:00', hora_fim: '15:00', data_fim: undefined, dias_semana: undefined });
+    assert.equal(unica.status, 201, 'reserva de uma data em nome do discente continua permitida');
+  });
+
   test('limites: data final anterior, dias sem funcionamento e período longo', async () => {
     assert.equal((await docA.post('/api/reservas/serie/verificar', { ...base, data_fim: somarDias(INICIO, -1) })).status, 400);
     assert.equal((await docA.post('/api/reservas/serie/verificar', { ...base, dias_semana: [0] })).status, 400);
