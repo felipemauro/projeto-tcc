@@ -76,13 +76,13 @@ export default function Relatorios() {
       <Cartao titulo="Relatórios gerados recentemente">
         {gerados.length === 0 ? <p className="texto-apoio">Nenhum relatório gerado ainda.</p> : (
           <table className="tabela tabela-compacta">
-            <thead><tr><th>Data</th><th>Tipo</th><th>Período</th><th>Formato</th><th>Usuário</th></tr></thead>
+            <thead><tr><th>Data</th><th>Tipo</th><th>Período</th><th>Usuário</th></tr></thead>
             <tbody>
               {gerados.slice(0, 10).map((g) => (
                 <tr key={g.id_relatorio}>
                   <td>{formatarDataHora(g.data_geracao)}</td><td>{tipos[g.tipo] || g.tipo}</td>
                   <td>{formatarData(g.parametros?.inicio)} a {formatarData(g.parametros?.fim)}</td>
-                  <td>{g.parametros?.formato?.toUpperCase()}</td><td>{g.usuario}</td>
+                  <td>{g.usuario}</td>
                 </tr>
               ))}
             </tbody>
