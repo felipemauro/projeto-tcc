@@ -723,7 +723,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nome\": \"Laboratório de Informática 5\",\n  \"capacidade\": 30,\n  \"localizacao\": \"Bloco C\",\n  \"descricao\": \"30 computadores\"\n}"
+              "raw": "{\n  \"nome\": \"Laboratório 999\",\n  \"capacidade\": 20,\n  \"localizacao\": \"Bloco 9 - Sala 999\",\n  \"descricao\": \"20 computadores (exemplo)\"\n}"
             }
           }
         },

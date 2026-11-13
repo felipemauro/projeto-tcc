@@ -18,11 +18,19 @@ const USUARIOS = [
 ];
 const COORD = 1, DOCENTE = 2, DISCENTE = 3;
 
+// Laboratórios da unidade, conforme o Regulamento de Uso e Funcionamento dos
+// Laboratórios de Informática da UEMG Divinópolis (2026). O 225 e a capacidade
+// do 1002 foram informados pela coordenação.
+const RECURSOS = 'quadro, projetor multimídia e ar-condicionado';
 const LABORATORIOS = [
-  ['Laboratório de Informática 1', 40, 'Bloco A – Sala 101', '40 computadores, projetor, Windows/Linux, IDEs de programação'],
-  ['Laboratório de Informática 2', 30, 'Bloco A – Sala 102', '30 computadores, projetor, pacote de simulação de circuitos'],
-  ['Laboratório de Informática 3', 25, 'Bloco B – Sala 205', '25 computadores, ferramentas de CAD e modelagem'],
-  ['Laboratório de Redes', 20, 'Bloco B – Sala 210', 'Bancada com switches e roteadores, 20 estações'],
+  ['Laboratório 404', 40, 'Bloco 4 - Sala 404 (antiga 406)', `40 computadores, ${RECURSOS}. Prioridade para turmas maiores.`],
+  ['Laboratório 109', 22, 'Bloco 1 - Sala 109', `22 computadores, ${RECURSOS}.`],
+  ['Laboratório 110', 22, 'Bloco 1 - Sala 110', `22 computadores, ${RECURSOS}. Livre acesso à tarde, das 14h às 16h.`],
+  ['Laboratório 220', 22, 'Bloco 2 - Sala 220', `22 computadores, ${RECURSOS}.`],
+  ['Laboratório 221', 22, 'Bloco 2 - Sala 221', `22 computadores, ${RECURSOS}.`],
+  ['Laboratório 1001', 20, 'Bloco 10 - Sala 1001', `20 computadores, ${RECURSOS}.`],
+  ['Laboratório 1002', 22, 'Bloco 10 - Sala 1002', 'Laboratório de Circuitos Elétricos e Eletrônicos. Uso exclusivo do curso de Engenharia de Computação.'],
+  ['Laboratório 225', 30, 'Bloco 2 - Sala 225', 'Capacidade para 30 alunos.'],
 ];
 
 // Disciplinas do PPC de Engenharia de Computação + uma atividade extracurricular de exemplo
@@ -45,11 +53,11 @@ const DISCIPLINAS_AGENDA = [
 // [usuarioIdx, labIdx, disciplinaIdx|null, deslocamentoDias, inicio, fim, alunos, status]
 const AGENDA_SEMANAL = [
   [DOCENTE, 0, 0, 0, '07:30', '09:10', 35, 'APROVADA'],
-  [DOCENTE, 1, 1, 0, '09:20', '11:00', 28, 'APROVADA'],
+  [DOCENTE, 1, 1, 0, '09:20', '11:00', 22, 'APROVADA'],
   [DOCENTE, 2, 2, 1, '13:00', '14:40', 22, 'APROVADA'],
   [DOCENTE, 3, 3, 1, '19:00', '20:40', 18, 'APROVADA'],
   [DOCENTE, 0, 1, 2, '19:00', '22:30', 38, 'APROVADA'],
-  [DOCENTE, 1, 4, 2, '07:30', '09:10', 25, 'APROVADA'],
+  [DOCENTE, 1, 4, 2, '07:30', '09:10', 20, 'APROVADA'],
   [DISCENTE, 2, 6, 3, '14:00', '17:00', 15, 'APROVADA'],
   [DOCENTE, 0, 0, 3, '07:30', '09:10', 35, 'APROVADA'],
   [DOCENTE, 1, 5, 4, '19:00', '20:40', 20, 'APROVADA'],

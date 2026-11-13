@@ -77,7 +77,7 @@ export default function Inicio() {
             <GradeHorarios
               colunas={labs.map((l) => ({
                 chave: l.id_laboratorio,
-                titulo: l.nome.replace('Laboratório de Informática', 'Lab. Info.'),
+                titulo: l.nome.replace('Laboratório', 'Lab.'),
                 subtitulo: `${l.capacidade} lugares`,
                 idLab: l.id_laboratorio,
                 reservas: reservasHoje.filter((r) => r.id_laboratorio === l.id_laboratorio).map((r) => ({ ...r, minha: r.id_usuario === usuario.id })),

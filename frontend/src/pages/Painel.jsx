@@ -98,7 +98,7 @@ export default function Painel() {
           <Cartao titulo="Taxa de ocupação por laboratório">
             <Barras
               itens={dados.ocupacao.map((l) => ({
-                rotulo: l.nome.replace('Laboratório de Informática', 'Lab. Info.'),
+                rotulo: l.nome.replace('Laboratório', 'Lab.'),
                 valor: l.taxa_ocupacao,
                 dica: `${l.horas_reservadas} h de ${l.horas_disponiveis} h disponíveis · ${l.reservas_aprovadas} reservas`,
               }))}
