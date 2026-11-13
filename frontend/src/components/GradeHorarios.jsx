@@ -1,4 +1,4 @@
-import { minutos } from '../util';
+import { AULAS, minutos } from '../util';
 
 const PX_HORA = 52;
 
@@ -16,8 +16,11 @@ export default function GradeHorarios({ colunas, inicio = '07:00', fim = '23:00'
   const clicarVazio = (coluna, e) => {
     if (!aoClicarVazio || e.target !== e.currentTarget) return;
     const y = e.nativeEvent.offsetY;
-    const min = ini + Math.floor((y / PX_HORA) * 2) * 30; // encaixa em 30 min
-    aoClicarVazio(coluna, min);
+    const clicado = ini + (y / PX_HORA) * 60;
+    // Encaixa na aula de 50 minutos em que o clique caiu; num intervalo, vai para a próxima aula.
+    const aula = AULAS.find((a) => clicado < minutos(a.fim));
+    if (!aula) return;
+    aoClicarVazio(coluna, minutos(aula.inicio));
   };
 
   return (

@@ -151,7 +151,7 @@ describe('sugerirHorarios', () => {
   });
   test('a primeira sugestão é a mais próxima (mesmo laboratório, deslocamento mínimo)', () => {
     assert.equal(sug[0].tipo, 'MESMO_LABORATORIO');
-    assert.equal(sug[0].hora_inicio, '10:00');
+    assert.equal(sug[0].hora_inicio, '10:30'); // passos de 50 min a partir das 08:00
   });
   test('respeita o limite de sugestões e ordena por distância', () => {
     assert.ok(sug.length <= P.sugestoes.maximo);

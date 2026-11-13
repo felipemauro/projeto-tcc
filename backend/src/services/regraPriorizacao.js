@@ -5,7 +5,7 @@ const {
 } = require('../utils/tempo');
 
 const PARAMETROS_PADRAO = Object.freeze({
-  funcionamento: { inicio: '07:00', fim: '23:00', diasSemana: [1, 2, 3, 4, 5, 6] },
+  funcionamento: { inicio: '07:00', fim: '22:55', diasSemana: [1, 2, 3, 4, 5, 6] },
   pesos: {
     natureza: { PRATICA: 45, TEORICA: 25, EXTRACURRICULAR: 10, SEM_DISCIPLINA: 5 },
     proximidadeMax: 20,
@@ -14,7 +14,7 @@ const PARAMETROS_PADRAO = Object.freeze({
   },
   // Só o administrativo é aprovado direto; o coordenador aprova os próprios pedidos na aba Solicitações.
   aprovacaoAutomatica: ['ADMINISTRATIVO'],
-  sugestoes: { janelaDias: 7, passoMinutos: 30, maximo: 6 },
+  sugestoes: { janelaDias: 7, passoMinutos: 50, maximo: 6 },
 });
 
 // 1. Verificação de conflitos (restrição rígida de não sobreposição)
@@ -183,7 +183,7 @@ function sugerirHorarios({ solicitacao, laboratorios, ocupacoes, parametros, hoj
         const i = ini + sinal * desloc;
         if (i < abre || i + duracao > fecha) continue;
         if (dataValida(solicitacao.data, i) && livre(labOriginal.id_laboratorio, solicitacao.data, i, i + duracao)) {
-          // distância = horas de deslocamento (30 min = 0,5)
+          // distância = horas de deslocamento (50 min ≈ 0,83)
           add(labOriginal, solicitacao.data, i, 'MESMO_LABORATORIO', desloc / 60 + (sinal < 0 ? 0.01 : 0));
         }
       }

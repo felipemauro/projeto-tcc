@@ -52,15 +52,15 @@ const DISCIPLINAS_AGENDA = [
 
 // [usuarioIdx, labIdx, disciplinaIdx|null, deslocamentoDias, inicio, fim, alunos, status]
 const AGENDA_SEMANAL = [
-  [DOCENTE, 0, 0, 0, '07:30', '09:10', 35, 'APROVADA'],
-  [DOCENTE, 1, 1, 0, '09:20', '11:00', 22, 'APROVADA'],
-  [DOCENTE, 2, 2, 1, '13:00', '14:40', 22, 'APROVADA'],
-  [DOCENTE, 3, 3, 1, '19:00', '20:40', 18, 'APROVADA'],
-  [DOCENTE, 0, 1, 2, '19:00', '22:30', 38, 'APROVADA'],
-  [DOCENTE, 1, 4, 2, '07:30', '09:10', 20, 'APROVADA'],
-  [DISCENTE, 2, 6, 3, '14:00', '17:00', 15, 'APROVADA'],
-  [DOCENTE, 0, 0, 3, '07:30', '09:10', 35, 'APROVADA'],
-  [DOCENTE, 1, 5, 4, '19:00', '20:40', 20, 'APROVADA'],
+  [DOCENTE, 0, 0, 0, '07:00', '08:40', 35, 'APROVADA'],
+  [DOCENTE, 1, 1, 0, '09:45', '11:25', 22, 'APROVADA'],
+  [DOCENTE, 2, 2, 1, '13:15', '14:55', 22, 'APROVADA'],
+  [DOCENTE, 3, 3, 1, '18:35', '20:15', 18, 'APROVADA'],
+  [DOCENTE, 0, 1, 2, '18:35', '22:10', 38, 'APROVADA'],
+  [DOCENTE, 1, 4, 2, '07:00', '08:40', 20, 'APROVADA'],
+  [DISCENTE, 2, 6, 3, '14:55', '16:35', 15, 'APROVADA'],
+  [DOCENTE, 0, 0, 3, '07:00', '08:40', 35, 'APROVADA'],
+  [DOCENTE, 1, 5, 4, '20:30', '22:10', 20, 'APROVADA'],
 ];
 
 async function seed() {
@@ -137,10 +137,10 @@ async function seed() {
 
   // Solicitações pendentes na próxima semana (incluindo concorrência pelo mesmo horário)
   const prox = somarDias(segunda, 7);
-  await inserir(usuarios[DOCENTE], labs[0], discs[2], somarDias(prox, 3), '13:00', '14:40', 30, 'PENDENTE', hoje());
-  await inserir(usuarios[DISCENTE], labs[0], discs[6], somarDias(prox, 3), '13:30', '15:00', 12, 'PENDENTE', hoje());
-  await inserir(usuarios[DOCENTE], labs[2], discs[5], somarDias(prox, 4), '09:20', '11:00', 20, 'PENDENTE', hoje());
-  await inserir(usuarios[DOCENTE], labs[3], discs[3], somarDias(prox, 0), '13:00', '14:40', 18, 'PENDENTE', hoje());
+  await inserir(usuarios[DOCENTE], labs[0], discs[2], somarDias(prox, 3), '13:15', '14:55', 30, 'PENDENTE', hoje());
+  await inserir(usuarios[DISCENTE], labs[0], discs[6], somarDias(prox, 3), '14:05', '15:45', 12, 'PENDENTE', hoje());
+  await inserir(usuarios[DOCENTE], labs[2], discs[5], somarDias(prox, 4), '09:45', '11:25', 20, 'PENDENTE', hoje());
+  await inserir(usuarios[DOCENTE], labs[3], discs[3], somarDias(prox, 0), '13:15', '14:55', 18, 'PENDENTE', hoje());
 
   // Algumas tentativas bloqueadas no histórico (para os indicadores)
   for (let i = 1; i <= 3; i++) {
@@ -148,7 +148,7 @@ async function seed() {
       `INSERT INTO historico (id_usuario, acao, detalhes, data_hora)
        VALUES ($1, 'BLOQUEADA_CONFLITO', $2, NOW() - ($3 || ' days')::interval)`,
       [usuarios[DOCENTE].id_usuario,
-        { solicitacao: { id_laboratorio: labs[0].id_laboratorio, data: somarDias(segunda, -7 * i), hora_inicio: '07:30', hora_fim: '09:10' } },
+        { solicitacao: { id_laboratorio: labs[0].id_laboratorio, data: somarDias(segunda, -7 * i), hora_inicio: '07:00', hora_fim: '08:40' } },
         String(i * 6)]
     );
   }

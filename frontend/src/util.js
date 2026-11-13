@@ -61,11 +61,22 @@ export const minutos = (hhmm) => {
   return h * 60 + m;
 };
 
-/** Horários-padrão de aula (sugestão de preenchimento rápido). */
-export const HORARIOS_AULA = [
-  ['07:30', '09:10'], ['09:20', '11:00'], ['13:00', '14:40'],
-  ['14:50', '16:30'], ['19:00', '20:40'], ['20:50', '22:30'],
-];
 export function paraHoraMin(min) {
   return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
 }
+
+// Grade de aulas da UEMG (aulas de 50 minutos).
+// Manhã: intervalo das 09:30 às 09:45. Almoço de 1 hora.
+// Tarde: até 17:30 (horários a confirmar). Noite: intervalo das 20:15 às 20:30,
+// e a última aula termina às 22:55.
+export const TURNOS = [
+  { nome: 'Manhã', aulas: [['07:00', '07:50'], ['07:50', '08:40'], ['08:40', '09:30'], ['09:45', '10:35'], ['10:35', '11:25'], ['11:25', '12:15']] },
+  { nome: 'Tarde', aulas: [['13:15', '14:05'], ['14:05', '14:55'], ['14:55', '15:45'], ['15:45', '16:35'], ['16:35', '17:25']] },
+  { nome: 'Noite', aulas: [['18:35', '19:25'], ['19:25', '20:15'], ['20:30', '21:20'], ['21:20', '22:10'], ['22:10', '22:55']] },
+];
+export const MAX_AULAS_SEGUIDAS = 6;
+
+// Lista única das aulas, com a posição de cada uma dentro do turno
+export const AULAS = TURNOS.flatMap((t, ti) =>
+  t.aulas.map(([inicio, fim], i) => ({ turno: t.nome, indiceTurno: ti, ordem: i + 1, inicio, fim })))
+  .map((a, i) => ({ ...a, id: i }));

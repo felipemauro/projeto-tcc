@@ -20,7 +20,7 @@ const esquema = z.object({
 router.get('/', async (req, res) => {
   const somenteAtivos = req.query.todos !== 'true';
   const { rows } = await db.query(
-    `SELECT * FROM laboratorio ${somenteAtivos ? 'WHERE ativo' : ''} ORDER BY nome`
+    `SELECT * FROM laboratorio ${somenteAtivos ? 'WHERE ativo' : ''} ORDER BY length(nome), nome`
   );
   res.json(rows);
 });

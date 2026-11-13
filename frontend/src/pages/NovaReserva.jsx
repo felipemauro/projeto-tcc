@@ -4,7 +4,7 @@ import { api } from '../api';
 import Icone from '../components/Icone';
 import { Alerta, Campo, Cartao, Pagina, PrioridadeBadge, Sugestoes, useAviso } from '../components/ui';
 import {
-  DIAS, DIAS_CURTOS, HORARIOS_AULA, PERFIS, PERFIS_SERIE, TIPOS_DISCIPLINA, formatarData, formatarDataLonga, hojeISO,
+  AULAS, DIAS, DIAS_CURTOS, MAX_AULAS_SEGUIDAS, PERFIS, TURNOS, PERFIS_SERIE, TIPOS_DISCIPLINA, formatarData, formatarDataLonga, hojeISO,
   minutos, paraHoraMin, parseData, somarDias,
 } from '../util';
 import { useAuth } from '../contexto/AuthContext';
@@ -62,6 +62,14 @@ function PreviaSerie({ previa }) {
 }
 
 // Tela de nova reserva, com a análise de conflitos e prioridade enquanto o usuário preenche
+// Término padrão ao chegar pela agenda: duas aulas seguidas no mesmo turno (ou uma, se for a última).
+function fimDuasAulas(inicio) {
+  const aula = AULAS.find((a) => a.inicio === inicio);
+  if (!aula) return paraHoraMin(Math.min(minutos(inicio) + 100, 22 * 60 + 55));
+  const proxima = AULAS[aula.id + 1];
+  return proxima && proxima.indiceTurno === aula.indiceTurno ? proxima.fim : aula.fim;
+}
+
 export default function NovaReserva() {
   const navegar = useNavigate();
   const avisar = useAviso();
@@ -84,7 +92,7 @@ export default function NovaReserva() {
     id_disciplina: '',
     data: params.get('data') || hojeISO(),
     hora_inicio: inicioParam || '',
-    hora_fim: inicioParam ? paraHoraMin(Math.min(minutos(inicioParam) + 100, 23 * 60)) : '',
+    hora_fim: inicioParam ? fimDuasAulas(inicioParam) : '',
     qtd_alunos: '',
     finalidade: '',
     id_usuario: '',
@@ -114,6 +122,21 @@ export default function NovaReserva() {
   }, [podeAgendarParaOutros, usuario.id]);
 
   const lab = labs.find((l) => String(l.id_laboratorio) === String(f.id_laboratorio));
+
+  // Seleção por aulas: a aula de início e quantas aulas seguidas (no mesmo turno)
+  // definem o horário. Se o horário digitado não bater com a grade, os campos ficam em branco.
+  const aulaInicial = AULAS.find((a) => a.inicio === f.hora_inicio);
+  const aulasDisponiveis = aulaInicial
+    ? AULAS.filter((a) => a.indiceTurno === aulaInicial.indiceTurno && a.id >= aulaInicial.id).slice(0, MAX_AULAS_SEGUIDAS)
+    : [];
+  const qtdAulas = aulasDisponiveis.findIndex((a) => a.fim === f.hora_fim) + 1;
+  const escolherAulas = (id, quantidade) => {
+    const inicial = AULAS[id];
+    if (!inicial) return;
+    const doTurno = AULAS.filter((a) => a.indiceTurno === inicial.indiceTurno && a.id >= id);
+    const ultima = doTurno[Math.min(quantidade, doTurno.length, MAX_AULAS_SEGUIDAS) - 1];
+    setF((x) => ({ ...x, hora_inicio: inicial.inicio, hora_fim: ultima.fim }));
+  };
   const completo = f.id_laboratorio && f.data && f.hora_inicio && f.hora_fim && Number(f.qtd_alunos) > 0
     && (!f.repetir || (f.data_fim && f.dias_semana.length > 0));
   const corpo = useMemo(() => ({
@@ -261,18 +284,24 @@ export default function NovaReserva() {
             <Campo rotulo="Quantidade de alunos *" ajuda={lab ? `Capacidade: ${lab.capacidade}` : undefined}>
               <input type="number" min="1" max={lab?.capacidade} value={f.qtd_alunos} onChange={(e) => set('qtd_alunos', e.target.value)} required />
             </Campo>
-            <div className="col-2">
-              <span className="campo-rotulo">Horário *</span>
-              <div className="horarios-rapidos">
-                {HORARIOS_AULA.map(([i, fim]) => (
-                  <button type="button" key={i}
-                    className={`chip ${f.hora_inicio === i && f.hora_fim === fim ? 'ativo' : ''}`}
-                    onClick={() => setF((x) => ({ ...x, hora_inicio: i, hora_fim: fim }))}>
-                    {i}–{fim}
-                  </button>
+            <Campo rotulo="Aula inicial" ajuda="Aulas de 50 minutos">
+              <select value={aulaInicial ? aulaInicial.id : ''} onChange={(e) => e.target.value !== '' && escolherAulas(Number(e.target.value), qtdAulas || 2)}>
+                <option value="">Selecione</option>
+                {TURNOS.map((t) => (
+                  <optgroup key={t.nome} label={t.nome}>
+                    {AULAS.filter((a) => a.turno === t.nome).map((a) => (
+                      <option key={a.id} value={a.id}>{a.ordem}ª aula - {a.inicio} às {a.fim}</option>
+                    ))}
+                  </optgroup>
                 ))}
-              </div>
-            </div>
+              </select>
+            </Campo>
+            <Campo rotulo="Quantidade de aulas" ajuda={aulaInicial && qtdAulas ? `Das ${f.hora_inicio} às ${f.hora_fim}` : 'Ou digite o horário abaixo'}>
+              <select value={qtdAulas || ''} disabled={!aulaInicial} onChange={(e) => escolherAulas(aulaInicial.id, Number(e.target.value))}>
+                {!qtdAulas && <option value="">-</option>}
+                {aulasDisponiveis.map((a, i) => <option key={a.id} value={i + 1}>{i + 1} {i === 0 ? 'aula' : 'aulas'}</option>)}
+              </select>
+            </Campo>
             <Campo rotulo="Início"><input type="time" step="300" value={f.hora_inicio} onChange={(e) => set('hora_inicio', e.target.value)} required /></Campo>
             <Campo rotulo="Término"><input type="time" step="300" value={f.hora_fim} onChange={(e) => set('hora_fim', e.target.value)} required /></Campo>
             {podeRepetirPerfil && paraDiscente && (
