@@ -22,7 +22,7 @@ const esquemaLogin = z.object({
   senha: z.string().min(1, 'Informe a senha.'),
 });
 
-// POST /api/auth/login – caso de uso "Realizar Login"
+// POST /api/auth/login
 router.post('/login', limitarLogin, async (req, res) => {
   const { email, senha } = esquemaLogin.parse(req.body);
   const { rows } = await db.query('SELECT * FROM usuario WHERE email = $1', [email]);

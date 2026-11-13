@@ -1,17 +1,11 @@
-/**
- * Serviço de Reservas – controle multiusuário.
- *
- * Estratégias de concorrência empregadas (Seção 3.4 do TCC):
- *  - Bloqueio pessimista: toda operação que pode ocupar um horário trava a
- *    linha do laboratório (SELECT ... FOR UPDATE) dentro de uma transação.
- *    Requisições simultâneas para o mesmo laboratório são serializadas,
- *    eliminando a condição de corrida "verificar e depois inserir".
- *  - Bloqueio otimista: aprovações/alterações informam a "versao" lida pelo
- *    usuário; se outro usuário modificou a reserva nesse intervalo, a
- *    operação é recusada e o usuário é notificado (evita lost update).
- *  - Restrição de exclusão no PostgreSQL: última barreira que impede duas
- *    reservas APROVADAS sobrepostas, mesmo diante de falhas na aplicação.
- */
+// Reservas e controle de concorrência.
+//
+// Para evitar reserva duplicada com vários usuários ao mesmo tempo:
+// - cada operação trava a linha do laboratório (SELECT ... FOR UPDATE)
+//   dentro da transação, então pedidos para o mesmo laboratório entram em fila;
+// - aprovar/alterar exige a "versao" que o usuário viu; se mudou, recusa (409);
+// - no banco, a restrição EXCLUDE impede aprovadas sobrepostas de qualquer jeito.
+
 const db = require('../db/pool');
 const regra = require('./regraPriorizacao');
 const { obterParametros } = require('./parametros');
@@ -167,11 +161,9 @@ async function resolverBeneficiario(cliente, idUsuario, usuario) {
   return rows[0];
 }
 
-// =====================================================================
 // Operações públicas
-// =====================================================================
 
-/** Verificação prévia de disponibilidade (sem gravar) – usada pela tela de nova reserva. */
+/** Verificação prévia de disponibilidade (sem gravar) - usada pela tela de nova reserva. */
 async function simular(dados, usuario) {
   const parametros = await obterParametros();
   const { rows } = await db.query(
@@ -218,7 +210,7 @@ async function gravarReserva(cliente, { dados, av, beneficiario, usuario, emNome
   return buscarReserva(cliente, id);
 }
 
-/** Solicitar reserva (caso de uso "Solicitar Reserva" com <<include>> Verificar Conflitos / Definir Prioridades). */
+/** Solicita uma reserva: avalia, grava e notifica. */
 async function solicitar(dados, usuario) {
   const parametros = await obterParametros();
 

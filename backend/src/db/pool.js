@@ -10,7 +10,6 @@ const pool = new Pool({ connectionString: config.databaseUrl, max: 20 });
 /**
  * Executa uma função dentro de uma transação ACID.
  * Em caso de erro, todas as operações são desfeitas (ROLLBACK),
- * garantindo a atomicidade descrita na Seção 3.2.4 do TCC.
  */
 async function transacao(fn) {
   const cliente = await pool.connect();

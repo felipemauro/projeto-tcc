@@ -1,9 +1,5 @@
-/**
- * Barramento de eventos em tempo real via Server-Sent Events (SSE).
- * Quando uma reserva é criada, aprovada, alterada ou cancelada, todos os
- * clientes conectados recebem o aviso e atualizam a tela sem recarregar
- * a página (Seção 3.2.1 do TCC).
- */
+// Eventos em tempo real (SSE): avisa os navegadores conectados quando
+// uma reserva muda, para que as telas recarreguem os dados.
 const clientes = new Set();
 
 function conectar(req, res, usuario) {

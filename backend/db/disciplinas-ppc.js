@@ -1,5 +1,5 @@
 /*
- * Disciplinas do curso de Bacharelado em Engenharia de Computação – UEMG Divinópolis,
+ * Disciplinas do curso de Bacharelado em Engenharia de Computação - UEMG Divinópolis,
  * conforme a Estrutura Curricular (Seção 7.10) e a relação de Disciplinas Optativas
  * do Projeto Pedagógico do Curso (PPC).
  *
@@ -10,7 +10,7 @@
  *   - carga prática = 0  -> TEORICA
  * Optativas não têm período fixo (período 0); no PPC todas ocupam vagas de 3 h/a teóricas.
  *
- * Não foram cadastrados: as vagas genéricas "Eletiva I/II" e "Optativa I–V" (substituídas
+ * Não foram cadastrados: as vagas genéricas "Eletiva I/II" e "Optativa I-V" (substituídas
  * pela lista de optativas abaixo), as Atividades Complementares e de Extensão, e as
  * eletivas (cursadas em outros cursos de graduação, conforme Seção 7.2 do PPC).
  */

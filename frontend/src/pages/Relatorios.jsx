@@ -4,7 +4,6 @@ import Icone from '../components/Icone';
 import { Alerta, Campo, Cartao, Pagina, Vazio, useAviso } from '../components/ui';
 import { formatarData, formatarDataHora, hojeISO, somarDias } from '../util';
 
-/** Caso de uso "Gerar Relatórios". */
 export default function Relatorios() {
   const avisar = useAviso();
   const [tipos, setTipos] = useState({});

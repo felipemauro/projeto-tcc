@@ -6,7 +6,7 @@ const { autorizar, PERFIS } = require('../middlewares/auth');
 const { naoEncontrado, ErroApi } = require('../utils/erros');
 const { registrarHistorico } = require('../services/auditoria');
 
-// Caso de uso "Gerenciar Perfis" – Funcionário Administrativo
+// Cadastro de usuários e perfis (somente administrativo)
 const router = Router();
 router.use(autorizar('ADMINISTRATIVO'));
 

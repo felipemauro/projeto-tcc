@@ -1,9 +1,6 @@
-/* =====================================================================
-   SALI – Sistema de Agendamento de Laboratórios (UEMG Divinópolis)
-   Identidade visual inspirada em portais acadêmicos (Lyceum):
-   barra superior institucional, menu lateral agrupado e conteúdo em cartões.
-   Para ajustar as cores, altere apenas as variáveis abaixo.
-   ===================================================================== */
+/* SALI - estilos gerais.
+   Layout no estilo do Lyceum: barra superior, menu lateral e cartões.
+   As cores ficam nas variáveis do :root. */
 :root {
   --azul-900: #082b52;
   --azul-800: #0b3d6e;
@@ -90,9 +87,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-radius: 9px; background: var(--destaque); color: #1d1d1d; font-size: 11px; font-weight: 700;
   display: flex; align-items: center; justify-content: center;
 }
-.tempo-real { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; opacity: .8; margin-right: 6px; }
-.tempo-real .ponto { width: 8px; height: 8px; border-radius: 50%; background: #9aa7b6; }
-.tempo-real.on .ponto { background: #4ade80; box-shadow: 0 0 0 3px rgba(74,222,128,.25); }
 .usuario-topo { display: flex; align-items: center; gap: 9px; padding: 0 8px; border-left: 1px solid rgba(255,255,255,.2); margin-left: 4px; }
 .avatar {
   width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -478,7 +472,7 @@ input:focus, select:focus, textarea:focus { border-color: var(--azul-500); box-s
   .lateral { position: fixed; left: 0; top: var(--topo-altura); width: 270px; transform: translateX(-100%); transition: transform .2s; }
   .menu-aberto .lateral { transform: none; box-shadow: var(--sombra-alta); }
   .menu-aberto .lateral-fundo { display: block; position: fixed; inset: var(--topo-altura) 0 0 0; background: rgba(0,0,0,.35); z-index: 15; }
-  .usuario-dados, .tempo-real, .marca-texto small { display: none; }
+  .usuario-dados, .marca-texto small { display: none; }
   .marca-logo { height: 24px; }
   .marca { gap: 10px; }
   .conteudo { padding: 16px 12px 40px; }

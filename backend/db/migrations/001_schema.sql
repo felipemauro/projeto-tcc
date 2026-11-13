@@ -1,16 +1,12 @@
--- =====================================================================
 -- Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário
--- UEMG – Unidade Divinópolis
--- Esquema relacional (PostgreSQL) derivado do DER (Figura 2 do TCC)
--- =====================================================================
+-- UEMG - Unidade Divinópolis
+-- Esquema do banco de dados
 
 -- Extensão necessária para a restrição de exclusão (anti-sobreposição)
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 
--- ---------------------------------------------------------------------
 -- Usuario: superclasse dos perfis Docente, Discente, Coordenador e
--- FuncionarioAdministrativo (Diagrama de Classes – Figura 3)
--- ---------------------------------------------------------------------
+-- FuncionarioAdministrativo
 CREATE TABLE IF NOT EXISTS usuario (
     id_usuario    SERIAL PRIMARY KEY,
     nome          VARCHAR(120) NOT NULL,
@@ -22,9 +18,7 @@ CREATE TABLE IF NOT EXISTS usuario (
     criado_em     TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 
--- ---------------------------------------------------------------------
 -- Laboratorio
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS laboratorio (
     id_laboratorio SERIAL PRIMARY KEY,
     nome           VARCHAR(80)  NOT NULL UNIQUE,
@@ -34,13 +28,11 @@ CREATE TABLE IF NOT EXISTS laboratorio (
     ativo          BOOLEAN      NOT NULL DEFAULT TRUE
 );
 
--- ---------------------------------------------------------------------
 -- Disciplina
 -- tipo: natureza da disciplina, usada pela regra de priorização
 --   PRATICA          -> prática obrigatória prevista na matriz curricular
 --   TEORICA          -> não exige obrigatoriamente laboratório
 --   EXTRACURRICULAR  -> minicursos, eventos, monitorias
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS disciplina (
     id_disciplina SERIAL PRIMARY KEY,
     nome          VARCHAR(120) NOT NULL,
@@ -52,10 +44,8 @@ CREATE TABLE IF NOT EXISTS disciplina (
     UNIQUE (nome, curso)
 );
 
--- ---------------------------------------------------------------------
 -- Reserva (entidade central do modelo)
 -- versao: controle de concorrência otimista (optimistic locking)
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS reserva (
     id_reserva     SERIAL PRIMARY KEY,
     id_usuario     INT  NOT NULL REFERENCES usuario(id_usuario),
@@ -89,9 +79,7 @@ CREATE INDEX IF NOT EXISTS ix_reserva_lab_data ON reserva (id_laboratorio, data)
 CREATE INDEX IF NOT EXISTS ix_reserva_usuario  ON reserva (id_usuario);
 CREATE INDEX IF NOT EXISTS ix_reserva_status   ON reserva (status);
 
--- ---------------------------------------------------------------------
 -- Relatorio: registro dos relatórios gerados (rastreabilidade)
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS relatorio (
     id_relatorio SERIAL PRIMARY KEY,
     id_usuario   INT NOT NULL REFERENCES usuario(id_usuario),
@@ -100,10 +88,8 @@ CREATE TABLE IF NOT EXISTS relatorio (
     data_geracao TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
--- ---------------------------------------------------------------------
--- Histórico de operações (auditoria – requisito não funcional)
+-- Histórico de operações (auditoria - requisito não funcional)
 -- id_reserva pode ser nulo para tentativas bloqueadas por conflito
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS historico (
     id_historico SERIAL PRIMARY KEY,
     id_reserva   INT REFERENCES reserva(id_reserva),
@@ -114,9 +100,7 @@ CREATE TABLE IF NOT EXISTS historico (
 );
 CREATE INDEX IF NOT EXISTS ix_historico_data ON historico (data_hora DESC);
 
--- ---------------------------------------------------------------------
 -- Notificações para usuários (ex.: reserva aprovada, remanejada)
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS notificacao (
     id_notificacao SERIAL PRIMARY KEY,
     id_usuario     INT NOT NULL REFERENCES usuario(id_usuario),
@@ -127,10 +111,8 @@ CREATE TABLE IF NOT EXISTS notificacao (
 );
 CREATE INDEX IF NOT EXISTS ix_notificacao_usuario ON notificacao (id_usuario, lida);
 
--- ---------------------------------------------------------------------
 -- Parâmetros do sistema: pesos da regra de priorização e horário de
 -- funcionamento, definidos pela instituição (ajuste manual)
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS parametro (
     chave VARCHAR(60) PRIMARY KEY,
     valor JSONB NOT NULL

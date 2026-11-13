@@ -1,14 +1,5 @@
-/**
- * RegraDePriorizacao (Diagrama de Classes – Figura 3 do TCC)
- *
- * Reúne as regras inteligentes de agendamento descritas na Seção 4.6:
- *  1. verificação automática de disponibilidade / conflitos;
- *  2. priorização de reservas por critérios definidos pela instituição;
- *  3. sugestão automática de horários alternativos.
- *
- * As funções deste módulo são puras (não acessam banco de dados), o que
- * permite testá-las de forma isolada e reutilizá-las em qualquer camada.
- */
+// Regras de agendamento: conflitos, prioridade, decisão e sugestões de horário.
+// Nada aqui acessa o banco, por isso dá para testar tudo isoladamente.
 const {
   paraMinutos, paraHora, somarDias, diferencaDias, diaSemana,
 } = require('../utils/tempo');
@@ -21,27 +12,19 @@ const PARAMETROS_PADRAO = Object.freeze({
     ocupacaoMax: 25,
     perfil: { ADMINISTRATIVO: 10, COORDENADOR: 10, DOCENTE: 10, DISCENTE: 0 },
   },
-  // Apenas o funcionário administrativo tem aprovação automática; as solicitações do
-  // coordenador seguem para a aba Solicitações e são aprovadas manualmente.
+  // Só o administrativo é aprovado direto; o coordenador aprova os próprios pedidos na aba Solicitações.
   aprovacaoAutomatica: ['ADMINISTRATIVO'],
   sugestoes: { janelaDias: 7, passoMinutos: 30, maximo: 6 },
 });
 
-// ---------------------------------------------------------------------
 // 1. Verificação de conflitos (restrição rígida de não sobreposição)
-// ---------------------------------------------------------------------
 
 /** Intervalos semiabertos [inicio, fim) se sobrepõem? */
 function haSobreposicao(inicioA, fimA, inicioB, fimB) {
   return inicioA < fimB && inicioB < fimA;
 }
 
-/**
- * Retorna as reservas que conflitam com a solicitação.
- * @param {{id_laboratorio:number,data:string,hora_inicio:string,hora_fim:string,id_reserva?:number}} alvo
- * @param {Array} reservas reservas existentes (qualquer status)
- * @param {string[]} statusConsiderados
- */
+/** Reservas que ocupam o mesmo laboratório no mesmo horário do pedido. */
 function verificarConflitos(alvo, reservas, statusConsiderados = ['APROVADA', 'PENDENTE']) {
   const ini = paraMinutos(alvo.hora_inicio);
   const fim = paraMinutos(alvo.hora_fim);
@@ -80,15 +63,13 @@ function validarRestricoesRigidas({ data, hora_inicio, hora_fim, qtd_alunos }, l
   return erros;
 }
 
-// ---------------------------------------------------------------------
 // 2. Priorização (restrições flexíveis)
-// ---------------------------------------------------------------------
 
 /**
  * Calcula a prioridade (0 a 100) de uma solicitação, com a composição
  * detalhada de cada critério, para dar transparência à decisão.
  *
- * Critérios (Seção 4.6): natureza da disciplina (aula prática obrigatória),
+ * Critérios: natureza da disciplina (aula prática obrigatória),
  * proximidade da data de utilização, quantidade de alunos envolvidos e
  * perfil do solicitante.
  */
@@ -126,7 +107,7 @@ function definirPrioridade({ tipoDisciplina, data, qtd_alunos, capacidade, perfi
 /**
  * Decide o destino de uma solicitação a partir dos conflitos encontrados.
  *  - BLOQUEAR: existe reserva aprovada de prioridade igual ou maior;
- *  - ANALISE:  existe reserva aprovada, mas de prioridade menor — a
+ *  - ANALISE:  existe reserva aprovada, mas de prioridade menor - a
  *              solicitação é encaminhada para análise administrativa
  *              (possível remanejamento);
  *  - APROVAR:  sem conflitos com aprovadas e solicitante com aprovação automática;
@@ -150,9 +131,7 @@ function decidirSolicitacao({ prioridade, perfil, conflitos }, parametros) {
   return { acao: 'PENDENTE', aprovadas, pendentes };
 }
 
-// ---------------------------------------------------------------------
 // 3. Sugestão automática de horários alternativos
-// ---------------------------------------------------------------------
 
 /**
  * Busca horários livres próximos ao solicitado:
@@ -160,11 +139,6 @@ function decidirSolicitacao({ prioridade, perfil, conflitos }, parametros) {
  *  b) outros laboratórios com capacidade suficiente no mesmo horário;
  *  c) mesmo laboratório e horário em dias próximos (janela configurável).
  * Os candidatos são ordenados por "distância" da solicitação original.
- *
- * @param {object} args
- * @param {object} args.solicitacao {id_laboratorio,data,hora_inicio,hora_fim,qtd_alunos}
- * @param {Array}  args.laboratorios [{id_laboratorio,nome,capacidade,ativo}]
- * @param {Array}  args.ocupacoes reservas que bloqueiam horário (aprovadas)
  */
 function sugerirHorarios({ solicitacao, laboratorios, ocupacoes, parametros, hojeISO, agoraMin }) {
   const p = parametros || PARAMETROS_PADRAO;
@@ -242,9 +216,7 @@ function sugerirHorarios({ solicitacao, laboratorios, ocupacoes, parametros, hoj
   return candidatos.slice(0, p.sugestoes.maximo);
 }
 
-// ---------------------------------------------------------------------
 // 4. Reservas recorrentes
-// ---------------------------------------------------------------------
 
 /**
  * Gera as datas de uma série semanal: todas as datas entre `inicio` e `fim`

@@ -1,8 +1,6 @@
--- ---------------------------------------------------------------------
 -- Reservas recorrentes (séries semanais)
 -- Uma série agrupa as reservas de um mesmo horário repetidas nos dias da
 -- semana escolhidos, dentro de um período (ex.: aulas do semestre).
--- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS serie (
     id_serie       SERIAL PRIMARY KEY,
     id_usuario     INT  NOT NULL REFERENCES usuario(id_usuario),   -- quem usará o laboratório

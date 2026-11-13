@@ -67,7 +67,7 @@ function MapaCalor({ demanda }) {
   );
 }
 
-/** Dashboard administrativo (objetivo específico "d" do TCC). */
+// Painel de ocupação
 export default function Painel() {
   const [periodo, setPeriodo] = useState('mes');
   const [inicio, fim] = PERIODOS[periodo]();

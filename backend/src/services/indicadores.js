@@ -1,6 +1,6 @@
 /**
- * Indicadores de uso dos laboratórios – base do dashboard administrativo
- * e dos relatórios (registro histórico de utilização, Seção 4.6).
+ * Indicadores de uso dos laboratórios - base do dashboard administrativo
+ * e dos relatórios.
  */
 const db = require('../db/pool');
 const { obterParametros } = require('./parametros');

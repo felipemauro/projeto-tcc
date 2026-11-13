@@ -1,6 +1,6 @@
-# SALI – Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário
+# SALI - Sistema de Agendamento de Laboratórios Acadêmicos com Controle Multiusuário
 
-Protótipo desenvolvido como Trabalho de Conclusão de Curso em **Engenharia da Computação** – **UEMG Unidade Divinópolis**.
+Protótipo desenvolvido como Trabalho de Conclusão de Curso em **Engenharia de Computação** - **UEMG, Unidade Divinópolis**.
 
 - **Autor:** Felipe Mauro da Silva
 - **Orientador:** Prof. Me. Marcos Alberto Saldanha
@@ -11,13 +11,13 @@ Plataforma web para docentes, discentes, coordenadores e funcionários administr
 
 ## Arquitetura
 
-Modelo cliente-servidor em três camadas (Figura 4 do TCC):
+Modelo cliente-servidor em três camadas:
 
 | Camada | Tecnologia | Pasta |
 |---|---|---|
 | Apresentação (SPA) | React 19, HTML5, CSS3, JavaScript (Vite) | `frontend/` |
-| Lógica de negócio / API REST | Node.js 22, Express 5, JWT | `backend/src/` |
-| Persistência | PostgreSQL 16 (transações ACID) | `backend/db/` |
+| Lógica de negócio / API REST | Node.js, Express 5, JWT | `backend/src/` |
+| Persistência | PostgreSQL (transações ACID) | `backend/db/` |
 
 ```
 frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  PostgreSQL
@@ -29,16 +29,16 @@ frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  Pos
 
 | Artefato do TCC | Implementação |
 |---|---|
-| DER (Figura 2): Usuario, Laboratorio, Disciplina, Reserva, Relatorio | `backend/db/migrations/001_schema.sql` (+ `historico`, `notificacao`, `parametro`) |
-| Classe `RegradePriorizacao` (Figura 3): `verificarConflitos()`, `definirPrioridades()` | `backend/src/services/regraPriorizacao.js` |
+| DER: Usuario, Laboratorio, Disciplina, Reserva, Relatorio | `backend/db/migrations/` (+ `historico`, `notificacao`, `parametro` e `serie`) |
+| Classe `RegradePriorizacao`: `verificarConflitos()`, `definirPrioridade()` | `backend/src/services/regraPriorizacao.js` |
 | Classe `Reserva`: `solicitar()`, `aprovar()`, `rejeitar()`, `alterar()` | `backend/src/services/reservaService.js` |
-| Casos de uso (Figura 1) | Rotas em `backend/src/routes/` e telas em `frontend/src/pages/` |
-| Diagrama de sequência (Seção 3.2.3) | `docs/diagrama-sequencia-solicitar-reserva.puml` |
-| Testes de API com Postman (Tabela 1) | `docs/SALI.postman_collection.json` |
+| Casos de uso | Rotas em `backend/src/routes/` e telas em `frontend/src/pages/` |
+| Diagrama de sequência | `docs/diagrama-sequencia-solicitar-reserva.puml` |
+| Testes de API com Postman | `docs/SALI.postman_collection.json` |
 
 ### Objetivos específicos × funcionalidades
 
-| Objetivo (Seção 1.2.1) | Onde está |
+| Objetivo específico | Onde está |
 |---|---|
 | a) Autenticação e controle de acesso multiusuário | Login JWT, senhas com bcrypt, RBAC por perfil (`middlewares/auth.js`), menu e rotas filtrados por perfil |
 | b) Algoritmos inteligentes de detecção e prevenção de conflitos | `regraPriorizacao.js` + travas transacionais em `reservaService.js` + restrição `EXCLUDE` no banco |
@@ -48,10 +48,10 @@ frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  Pos
 
 ---
 
-## Regras inteligentes de agendamento (Seção 4.6)
+## Regras inteligentes de agendamento
 
-1. **Verificação automática de disponibilidade** – restrições rígidas (capacidade, horário de funcionamento, dia letivo, data passada) e verificação de sobreposição com reservas aprovadas e pendentes.
-2. **Priorização (0 a 100)** – soma ponderada e transparente de:
+1. **Verificação automática de disponibilidade** - restrições rígidas (capacidade, horário de funcionamento, dia letivo, data passada) e verificação de sobreposição com reservas aprovadas e pendentes.
+2. **Priorização (0 a 100)** - soma ponderada e transparente de:
    - natureza da disciplina (prática obrigatória > teórica > extracurricular > sem disciplina);
    - proximidade da data de utilização;
    - quantidade de alunos em relação à capacidade do laboratório;
@@ -60,12 +60,12 @@ frontend/  ──HTTP/JSON──▶  backend (API REST)  ──SQL──▶  Pos
 3. **Decisão**:
    - conflito com aprovada de prioridade **igual ou maior** → solicitação **bloqueada** e horários alternativos sugeridos;
    - conflito com aprovada de prioridade **menor** → encaminhada para **análise** (possível remanejamento);
-   - sem conflitos → aprovação automática (perfis configurados) ou pendente de aprovação.
-4. **Sugestão de horários alternativos** – mesmo laboratório em horários próximos, outros laboratórios com capacidade suficiente no mesmo horário e o mesmo horário em dias próximos, ordenados por proximidade.
-5. **Reservas recorrentes** – o solicitante informa o horário, o período e os dias da semana em que leciona; cada data gerada passa pelas mesmas regras acima. Datas com conflito são mostradas antes da confirmação e não são criadas; as demais formam uma série, que pode ser aprovada ou cancelada de uma só vez.
-6. **Histórico de utilização** – todas as operações (inclusive tentativas bloqueadas) ficam registradas para auditoria e indicadores.
+   - sem conflitos → aprovação automática (por padrão, só para o funcionário administrativo) ou pendente de aprovação. As solicitações do coordenador, de docentes e de discentes são aprovadas manualmente na tela **Solicitações**.
+4. **Sugestão de horários alternativos** - mesmo laboratório em horários próximos, outros laboratórios com capacidade suficiente no mesmo horário e o mesmo horário em dias próximos, ordenados por proximidade.
+5. **Reservas recorrentes** - disponíveis para docentes, coordenadores e funcionários administrativos (discentes solicitam uma data por vez, inclusive quando o administrativo agenda para eles). O solicitante informa o horário, o período e os dias da semana em que leciona; cada data gerada passa pelas mesmas regras acima. Datas com conflito são mostradas antes da confirmação e não são criadas; as demais formam uma série, que pode ser aprovada ou cancelada de uma só vez.
+6. **Histórico de utilização** - todas as operações (inclusive tentativas bloqueadas) ficam registradas para auditoria e indicadores.
 
-## Controle multiusuário (Seção 3.4)
+## Controle multiusuário
 
 - **Bloqueio pessimista:** cada operação que pode ocupar horário executa `SELECT ... FOR UPDATE` na linha do laboratório dentro de uma transação, serializando requisições simultâneas ao mesmo laboratório.
 - **Bloqueio otimista:** aprovações e alterações enviam a `versao` lida; se outro usuário alterou a reserva no intervalo, a operação é recusada (`409 VERSAO_DESATUALIZADA`), evitando *lost update*.
@@ -79,7 +79,7 @@ O teste `backend/tests/concorrencia.test.js` dispara 20 solicitações simultân
 ## Como executar
 
 ### Pré-requisitos
-- Node.js 20 ou superior
+- Node.js 20 ou superior (com npm)
 - PostgreSQL 14 ou superior
 
 ### 1. Banco de dados
@@ -95,12 +95,18 @@ CREATE DATABASE sali_test OWNER sali;   -- usado pelos testes automatizados
 ### 2. Backend
 ```bash
 cd backend
-cp .env.example .env        # ajuste DATABASE_URL e JWT_SECRET se necessário
+cp .env.example .env        # ajuste DATABASE_URL e defina um JWT_SECRET próprio (veja abaixo)
 npm install
 npm run db:reset            # cria as tabelas e insere dados de demonstração
 npm run db:disciplinas      # (opcional) importa as disciplinas do PPC sem apagar os dados
 npm run dev                 # API em http://localhost:3333/api
 ```
+
+Para gerar um `JWT_SECRET` aleatório:
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+No Windows, use `copy .env.example .env` no lugar de `cp`. Se já existir um banco com dados, rode `npm run db:migrate` em vez de `npm run db:reset`, que apaga tudo.
 
 ### 3. Frontend
 ```bash
@@ -133,7 +139,7 @@ cd ../backend && npm start   # serve a API e o frontend compilado em http://loca
 ### Testes automatizados
 ```bash
 cd backend
-npm test     # 68 testes: unitários (regras), integração (API, séries) e concorrência
+npm test     # 72 testes: unitários (regras), integração (API, séries) e concorrência
 ```
 
 ---
@@ -151,8 +157,8 @@ npm test     # 68 testes: unitários (regras), integração (API, séries) e con
 | POST | `/api/reservas/:id/aprovar` | Aprovar (`forcar: true` para remanejar) | gestores |
 | POST | `/api/reservas/:id/rejeitar` | Rejeitar com motivo | gestores |
 | DELETE | `/api/reservas/:id` | Cancelar (remoção lógica) | dono / gestores |
-| POST | `/api/reservas/serie/verificar` | Prévia de reserva recorrente: situação de cada data | todos |
-| POST | `/api/reservas/serie` | Criar reserva recorrente (semanal) com as datas disponíveis | todos |
+| POST | `/api/reservas/serie/verificar` | Prévia de reserva recorrente: situação de cada data | docente, coordenador, administrativo |
+| POST | `/api/reservas/serie` | Criar reserva recorrente (semanal) com as datas disponíveis | docente, coordenador, administrativo |
 | POST | `/api/reservas/serie/:id/aprovar` | Aprovar todas as datas pendentes da série | gestores |
 | DELETE | `/api/reservas/serie/:id` | Cancelar as próximas datas da série | dono / gestores |
 | GET | `/api/laboratorios/:id/disponibilidade?data=` | Ocupação do dia | todos |

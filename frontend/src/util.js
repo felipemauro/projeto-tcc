@@ -7,6 +7,8 @@ export const PERFIS = {
   DISCENTE: 'Discente',
 };
 export const GESTORES = ['ADMINISTRATIVO', 'COORDENADOR'];
+// Perfis que podem criar reservas recorrentes (o discente pede uma data por vez)
+export const PERFIS_SERIE = ['ADMINISTRATIVO', 'COORDENADOR', 'DOCENTE'];
 export const ehGestor = (u) => !!u && GESTORES.includes(u.perfil);
 
 export const STATUS = {

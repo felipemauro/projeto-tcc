@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "SALI – Agendamento de Laboratórios (UEMG)",
+    "name": "SALI - Agendamento de Laboratórios (UEMG)",
     "description": "Coleção de testes da API REST. Execute primeiro um dos logins: o token é salvo automaticamente.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
@@ -30,6 +30,10 @@
     {
       "key": "idReserva",
       "value": "1"
+    },
+    {
+      "key": "idSerie",
+      "value": "1"
     }
   ],
   "item": [
@@ -37,7 +41,7 @@
       "name": "Autenticação",
       "item": [
         {
-          "name": "Login – Coordenador",
+          "name": "Login - Coordenador",
           "event": [
             {
               "listen": "test",
@@ -79,7 +83,7 @@
           }
         },
         {
-          "name": "Login – Docente",
+          "name": "Login - Docente",
           "event": [
             {
               "listen": "test",
@@ -121,7 +125,49 @@
           }
         },
         {
-          "name": "Login – Administrativo",
+          "name": "Login - Discente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.token) pm.collectionVariables.set('token', r.token);",
+                  "pm.test('login realizado', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"felipe.1657023@discente.uemg.br\",\n  \"senha\": \"123456@fe\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login - Administrativo",
           "event": [
             {
               "listen": "test",
@@ -480,6 +526,123 @@
               "path": [
                 "reservas",
                 "{{idReserva}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reservas recorrentes",
+      "item": [
+        {
+          "name": "Prévia da série (sem gravar)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/serie/verificar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "serie",
+                "verificar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_laboratorio\": 2,\n  \"id_disciplina\": 1,\n  \"data\": \"{{dataReserva}}\",\n  \"data_fim\": \"2027-03-31\",\n  \"dias_semana\": [\n    2\n  ],\n  \"hora_inicio\": \"19:00\",\n  \"hora_fim\": \"20:40\",\n  \"qtd_alunos\": 30,\n  \"finalidade\": \"Aula prática semanal\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Criar série semanal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/serie",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "serie"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_laboratorio\": 2,\n  \"id_disciplina\": 1,\n  \"data\": \"{{dataReserva}}\",\n  \"data_fim\": \"2027-03-31\",\n  \"dias_semana\": [\n    2\n  ],\n  \"hora_inicio\": \"19:00\",\n  \"hora_fim\": \"20:40\",\n  \"qtd_alunos\": 30,\n  \"finalidade\": \"Aula prática semanal\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.id_serie) pm.collectionVariables.set('idSerie', r.id_serie);",
+                  "pm.test('série criada', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aprovar todas as datas da série (gestão)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/serie/{{idSerie}}/aprovar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "serie",
+                "{{idSerie}}",
+                "aprovar"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          }
+        },
+        {
+          "name": "Cancelar as próximas datas da série",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reservas/serie/{{idSerie}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "reservas",
+                "serie",
+                "{{idSerie}}"
               ]
             }
           }

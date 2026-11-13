@@ -10,7 +10,7 @@ import {
   DIAS_CURTOS, formatarData, formatarDataLonga, hojeISO, inicioSemana, parseData, paraHoraMin, somarDias,
 } from '../util';
 
-/** Caso de uso "Consultar Disponibilidade" / "Visualizar Horários Agendados". */
+// Agenda dos laboratórios (visão por dia e por semana)
 export default function Agenda() {
   const { usuario } = useAuth();
   const navegar = useNavigate();

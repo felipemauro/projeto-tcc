@@ -4,7 +4,7 @@ const db = require('../db/pool');
 const indicadores = require('../services/indicadores');
 const { registrarHistorico } = require('../services/auditoria');
 
-// Caso de uso "Gerar Relatórios" – Coordenador e Funcionário Administrativo
+// Relatórios (coordenador e administrativo)
 const router = Router();
 
 const TIPOS = {

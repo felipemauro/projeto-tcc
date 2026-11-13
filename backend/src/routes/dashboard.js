@@ -6,7 +6,7 @@ const { hoje, somarDias } = require('../utils/tempo');
 const router = Router();
 const data = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-// GET /api/dashboard?inicio&fim – dashboard administrativo (Objetivo específico "d")
+// GET /api/dashboard?inicio&fim - dashboard administrativo (Objetivo específico "d")
 router.get('/', async (req, res) => {
   const hojeISO = hoje();
   const inicio = req.query.inicio ? data.parse(req.query.inicio) : `${hojeISO.slice(0, 8)}01`;

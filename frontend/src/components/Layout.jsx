@@ -5,7 +5,7 @@ import logoUemg from '../assets/logo-uemg.png';
 import { useAuth } from '../contexto/AuthContext';
 import { useTempoReal } from '../contexto/TempoReal';
 import { api } from '../api';
-import { PERFIS, formatarDataHora } from '../util';
+import { PERFIS, GESTORES, ehGestor, formatarDataHora } from '../util';
 
 /** Menu lateral organizado por grupos e filtrado conforme o perfil. */
 const MENU = [
@@ -20,7 +20,7 @@ const MENU = [
   },
   {
     grupo: 'Gestão',
-    perfis: ['ADMINISTRATIVO', 'COORDENADOR'],
+    perfis: GESTORES,
     itens: [
       { para: '/gestao/solicitacoes', icone: 'aprovar', rotulo: 'Solicitações', contador: true },
       { para: '/gestao/painel', icone: 'grafico', rotulo: 'Painel de ocupação' },
@@ -81,11 +81,11 @@ function Notificacoes() {
 
 export default function Layout() {
   const { usuario, sair } = useAuth();
-  const { conectado, versao } = useTempoReal();
+  const { versao } = useTempoReal();
   const [menuAberto, setMenuAberto] = useState(false);
   const [pendentes, setPendentes] = useState(0);
   const local = useLocation();
-  const gestor = ['ADMINISTRATIVO', 'COORDENADOR'].includes(usuario.perfil);
+  const gestor = ehGestor(usuario);
 
   useEffect(() => setMenuAberto(false), [local.pathname]);
   useEffect(() => {
@@ -108,9 +108,6 @@ export default function Layout() {
           </span>
         </div>
         <div className="topo-direita">
-          <span className={`tempo-real ${conectado ? 'on' : ''}`} title={conectado ? 'Atualização em tempo real ativa' : 'Reconectando…'}>
-            <span className="ponto" /> {conectado ? 'Ao vivo' : 'Offline'}
-          </span>
           <Notificacoes />
           <div className="usuario-topo">
             <span className="avatar">{usuario.nome.replace(/^(Prof\.?|Profa\.?)\s+/i, '').charAt(0)}</span>

@@ -1,8 +1,6 @@
--- ---------------------------------------------------------------------
 -- As solicitações do coordenador deixam de ter aprovação automática:
 -- passam a ficar pendentes e são aprovadas manualmente em Solicitações.
 -- Ajusta, uma única vez, regras já salvas pela tela "Regras de priorização".
--- ---------------------------------------------------------------------
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM parametro WHERE chave = 'migracao_004_aprovacao_coordenador') THEN

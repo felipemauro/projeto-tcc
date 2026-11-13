@@ -37,7 +37,7 @@ router.get('/', async (req, res) => {
   );
 });
 
-// POST /api/reservas/verificar – pré-validação inteligente (conflitos, prioridade, sugestões)
+// POST /api/reservas/verificar - pré-validação inteligente (conflitos, prioridade, sugestões)
 router.post('/verificar', async (req, res) => {
   const dados = esquemaReserva.extend({ id_reserva: id.optional() }).parse(req.body);
   res.json(await servico.simular(dados, req.usuario));
@@ -49,22 +49,22 @@ const esquemaSerie = esquemaReserva.extend({
   dias_semana: z.array(z.coerce.number().int().min(0).max(6)).min(1, 'Escolha ao menos um dia da semana.').max(7),
 });
 
-// POST /api/reservas/serie/verificar – prévia de todas as datas da repetição (não grava)
+// POST /api/reservas/serie/verificar - prévia de todas as datas da repetição (não grava)
 router.post('/serie/verificar', async (req, res) => {
   res.json(await series.simularSerie(esquemaSerie.parse(req.body), req.usuario));
 });
 
-// POST /api/reservas/serie – cria a série com todas as datas disponíveis
+// POST /api/reservas/serie - cria a série com todas as datas disponíveis
 router.post('/serie', async (req, res) => {
   res.status(201).json(await series.criarSerie(esquemaSerie.parse(req.body), req.usuario));
 });
 
-// POST /api/reservas/serie/:id/aprovar – aprova as datas pendentes sem conflito
+// POST /api/reservas/serie/:id/aprovar - aprova as datas pendentes sem conflito
 router.post('/serie/:id/aprovar', autorizar(...GESTORES), async (req, res) => {
   res.json(await series.aprovarSerie(id.parse(req.params.id), req.usuario));
 });
 
-// DELETE /api/reservas/serie/:id – cancela as próximas datas da série
+// DELETE /api/reservas/serie/:id - cancela as próximas datas da série
 router.delete('/serie/:id', async (req, res) => {
   const motivo = typeof req.query.motivo === 'string' ? req.query.motivo.slice(0, 500) : undefined;
   res.json(await series.cancelarSerie(id.parse(req.params.id), { motivo }, req.usuario));
@@ -74,13 +74,13 @@ router.get('/:id', async (req, res) => {
   res.json(await servico.obter(id.parse(req.params.id), req.usuario));
 });
 
-// POST /api/reservas – caso de uso "Solicitar Reserva"
+// POST /api/reservas
 router.post('/', async (req, res) => {
   const resultado = await servico.solicitar(esquemaReserva.parse(req.body), req.usuario);
   res.status(201).json(resultado);
 });
 
-// PATCH /api/reservas/:id – caso de uso "Alterar Reserva"
+// PATCH /api/reservas/:id
 router.patch('/:id', async (req, res) => {
   const dados = esquemaReserva.omit({ id_usuario: true }).partial().extend({
     versao: z.coerce.number().int().optional(),
@@ -89,7 +89,7 @@ router.patch('/:id', async (req, res) => {
   res.json(await servico.alterar(id.parse(req.params.id), dados, req.usuario));
 });
 
-// POST /api/reservas/:id/aprovar – caso de uso "Aprovar Reserva"
+// POST /api/reservas/:id/aprovar
 router.post('/:id/aprovar', autorizar(...GESTORES), async (req, res) => {
   const dados = z.object({
     versao: z.coerce.number().int().optional(),
@@ -99,7 +99,7 @@ router.post('/:id/aprovar', autorizar(...GESTORES), async (req, res) => {
   res.json(await servico.aprovar(id.parse(req.params.id), dados, req.usuario));
 });
 
-// POST /api/reservas/:id/rejeitar – caso de uso "Rejeitar Reserva"
+// POST /api/reservas/:id/rejeitar
 router.post('/:id/rejeitar', autorizar(...GESTORES), async (req, res) => {
   const dados = z.object({
     versao: z.coerce.number().int().optional(),
@@ -108,7 +108,7 @@ router.post('/:id/rejeitar', autorizar(...GESTORES), async (req, res) => {
   res.json(await servico.rejeitar(id.parse(req.params.id), dados, req.usuario));
 });
 
-// DELETE /api/reservas/:id – cancelamento (remoção lógica)
+// DELETE /api/reservas/:id - cancelamento (remoção lógica)
 router.delete('/:id', async (req, res) => {
   const motivo = typeof req.query.motivo === 'string' ? req.query.motivo.slice(0, 500) : undefined;
   res.json(await servico.cancelar(id.parse(req.params.id), { motivo }, req.usuario));

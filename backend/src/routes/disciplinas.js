@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
   res.json(rows);
 });
 
-// Caso de uso "Gerenciar Disciplinas" – Funcionário Administrativo
+// Cadastro de disciplinas (somente administrativo)
 router.post('/', autorizar('ADMINISTRATIVO'), async (req, res) => {
   const d = esquema.parse(req.body);
   const { rows } = await db.query(

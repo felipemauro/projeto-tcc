@@ -16,7 +16,7 @@ const esquema = z.object({
   ativo: z.boolean().optional(),
 });
 
-// GET /api/laboratorios – todos os perfis (consulta)
+// GET /api/laboratorios - todos os perfis (consulta)
 router.get('/', async (req, res) => {
   const somenteAtivos = req.query.todos !== 'true';
   const { rows } = await db.query(
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
   res.json(rows);
 });
 
-// GET /api/laboratorios/:id/disponibilidade?data=AAAA-MM-DD – caso de uso "Consultar Disponibilidade"
+// GET /api/laboratorios/:id/disponibilidade?data=AAAA-MM-DD
 router.get('/:id/disponibilidade', async (req, res) => {
   const data = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(req.query.data);
   const { rows: lab } = await db.query('SELECT * FROM laboratorio WHERE id_laboratorio = $1', [req.params.id]);
@@ -42,7 +42,7 @@ router.get('/:id/disponibilidade', async (req, res) => {
   res.json({ laboratorio: lab[0], data, ocupacoes: rows });
 });
 
-// Caso de uso "Gerenciar Laboratórios" – Funcionário Administrativo
+// Cadastro de laboratórios (somente administrativo)
 router.post('/', autorizar('ADMINISTRATIVO'), async (req, res) => {
   const d = esquema.parse(req.body);
   const { rows } = await db.query(

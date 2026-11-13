@@ -4,7 +4,7 @@ import { api } from '../api';
 import Icone from '../components/Icone';
 import { Alerta, Campo, Cartao, Pagina, PrioridadeBadge, Sugestoes, useAviso } from '../components/ui';
 import {
-  DIAS, DIAS_CURTOS, HORARIOS_AULA, PERFIS, TIPOS_DISCIPLINA, formatarData, formatarDataLonga, hojeISO,
+  DIAS, DIAS_CURTOS, HORARIOS_AULA, PERFIS, PERFIS_SERIE, TIPOS_DISCIPLINA, formatarData, formatarDataLonga, hojeISO,
   minutos, paraHoraMin, parseData, somarDias,
 } from '../util';
 import { useAuth } from '../contexto/AuthContext';
@@ -61,15 +61,13 @@ function PreviaSerie({ previa }) {
   );
 }
 
-/** Caso de uso "Solicitar Reserva" com verificação de conflitos e priorização em tempo real. */
+// Tela de nova reserva, com a análise de conflitos e prioridade enquanto o usuário preenche
 export default function NovaReserva() {
   const navegar = useNavigate();
   const avisar = useAviso();
   const { usuario } = useAuth();
   const podeAgendarParaOutros = usuario.perfil === 'ADMINISTRATIVO';
-  // Reservas recorrentes: docentes, coordenadores e funcionários administrativos
-  const perfisSerie = ['ADMINISTRATIVO', 'COORDENADOR', 'DOCENTE'];
-  const podeRepetirPerfil = perfisSerie.includes(usuario.perfil);
+  const podeRepetirPerfil = PERFIS_SERIE.includes(usuario.perfil);
   const [usuarios, setUsuarios] = useState([]);
   const [params] = useSearchParams();
   const [labs, setLabs] = useState([]);

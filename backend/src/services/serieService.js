@@ -1,12 +1,7 @@
-/**
- * Reservas recorrentes (séries semanais).
- *
- * O solicitante informa horário, período (data inicial e final) e os dias da
- * semana em que leciona. Cada data gerada passa pelas MESMAS regras de uma
- * reserva comum (restrições rígidas, prioridade, conflitos e decisão).
- * Datas bloqueadas ou inválidas são ignoradas e informadas ao usuário; as
- * demais são gravadas numa única transação, vinculadas à série.
- */
+// Reservas recorrentes (série semanal).
+// Cada data gerada passa pelas mesmas regras de uma reserva comum; as que
+// não podem ser criadas são ignoradas e informadas, e o resto é gravado
+// numa transação só.
 const db = require('../db/pool');
 const regra = require('./regraPriorizacao');
 const { obterParametros } = require('./parametros');

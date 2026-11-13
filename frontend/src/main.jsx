@@ -15,6 +15,7 @@ import Relatorios from './pages/Relatorios';
 import Historico from './pages/Historico';
 import Regras from './pages/Regras';
 import { Disciplinas, Laboratorios, Usuarios } from './pages/Cadastros';
+import { GESTORES } from './util';
 import './estilos.css';
 
 function Protegida({ perfis, children }) {
@@ -25,7 +26,6 @@ function Protegida({ perfis, children }) {
   return children;
 }
 
-const GESTAO = ['ADMINISTRATIVO', 'COORDENADOR'];
 const ADMIN = ['ADMINISTRATIVO'];
 
 function App() {
@@ -37,10 +37,10 @@ function App() {
         <Route path="agenda" element={<Agenda />} />
         <Route path="reservas/nova" element={<NovaReserva />} />
         <Route path="reservas/minhas" element={<MinhasReservas />} />
-        <Route path="gestao/solicitacoes" element={<Protegida perfis={GESTAO}><Solicitacoes /></Protegida>} />
-        <Route path="gestao/painel" element={<Protegida perfis={GESTAO}><Painel /></Protegida>} />
-        <Route path="gestao/relatorios" element={<Protegida perfis={GESTAO}><Relatorios /></Protegida>} />
-        <Route path="gestao/historico" element={<Protegida perfis={GESTAO}><Historico /></Protegida>} />
+        <Route path="gestao/solicitacoes" element={<Protegida perfis={GESTORES}><Solicitacoes /></Protegida>} />
+        <Route path="gestao/painel" element={<Protegida perfis={GESTORES}><Painel /></Protegida>} />
+        <Route path="gestao/relatorios" element={<Protegida perfis={GESTORES}><Relatorios /></Protegida>} />
+        <Route path="gestao/historico" element={<Protegida perfis={GESTORES}><Historico /></Protegida>} />
         <Route path="cadastros/laboratorios" element={<Protegida perfis={ADMIN}><Laboratorios /></Protegida>} />
         <Route path="cadastros/disciplinas" element={<Protegida perfis={ADMIN}><Disciplinas /></Protegida>} />
         <Route path="cadastros/usuarios" element={<Protegida perfis={ADMIN}><Usuarios /></Protegida>} />

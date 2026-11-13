@@ -1,5 +1,5 @@
 /*
- * Testes de concorrência (controle multiusuário – Seção 3.4 do TCC).
+ * Testes de concorrência.
  * Simulam vários usuários tentando ocupar o MESMO laboratório e horário
  * ao mesmo tempo, verificando que nunca surgem reservas duplicadas.
  */
