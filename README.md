@@ -80,15 +80,11 @@ O teste `backend/tests/concorrencia.test.js` dispara 20 solicitações simultân
 
 ### Pré-requisitos
 - Node.js 20 ou superior
-- PostgreSQL 14+ (local ou via Docker)
+- PostgreSQL 14 ou superior
 
 ### 1. Banco de dados
 
-Com Docker:
-```bash
-docker compose up -d
-```
-Ou, em um PostgreSQL já instalado, crie o usuário e os bancos:
+No PostgreSQL instalado, crie o usuário e os bancos:
 ```sql
 CREATE USER sali WITH PASSWORD 'sali';
 CREATE DATABASE sali OWNER sali;
@@ -187,8 +183,7 @@ A coleção completa para o Postman está em `docs/SALI.postman_collection.json`
 │       ├── pages/       telas (agenda, nova reserva, solicitações, painel…)
 │       ├── components/  layout com menu lateral, grade de horários, modais
 │       └── contexto/    autenticação e tempo real
-├── docs/              diagrama de sequência (PlantUML) e coleção Postman
-└── docker-compose.yml PostgreSQL para desenvolvimento
+└── docs/              diagrama de sequência (PlantUML) e coleção Postman
 ```
 
 ## Identidade visual
